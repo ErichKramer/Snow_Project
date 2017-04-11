@@ -13,13 +13,14 @@ struct snowflake{
     int originX, originY;
        
     //integers to bound the extremes, used to calc eclippse
-    int xMax, yMax, zMax;
+    int xMax, yMax, zMax;//qed
     int xMin, yMin, zMin;
 
-    int** neighborCollisions;
-    int nColSize;
+    snowflake** neighborCollisions;//set of nearby structs
+    int nColSize;//num of elements in neighbor
 };
 
+//initialize values based on params
 snowflake* initSnowflake(int x, int y, int idx){
     snowflake* s = malloc(sizeof(snowflake));
     s->originX = x;
@@ -32,10 +33,24 @@ snowflake* initSnowflake(int x, int y, int idx){
     neighborCollisions = NULL;
 }
 
-snowflake* convertPlaneHeights(double* ){
+void setOrigin(snowflake* s, int x, int y){
+    s->originX = x;
+    s->originY = y;
+}
+
+
+snowflake* convertPlaneHeights(snowflake* s, double* arr, int size ){
 //construct voxel shell from x,y cooords
+    int centerPlane = size/2;//center plane of sflake
+    s->voxelSpace = malloc(sizeof(double*size*size*size));
+    for( int i = 0; i<size*size; i++){//access x = i%size, y = i/size
+        int z = ceil(arr[i]/ 2.) ;//formula for z value
+        for(int j = 0; j < size; j+){
+            
+            
+        }
 
-
+    }
 }
 
 void updateMaxMin(snowflake* s){
@@ -45,7 +60,6 @@ void updateMaxMin(snowflake* s){
     //for each plane scan for a valid z value, stop if found
 
     }
-
 
 //flip a bool when going from hit to not hit
 
