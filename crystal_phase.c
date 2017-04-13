@@ -27,6 +27,9 @@ int last = 1;//global boolean indicates program is ending
 //specifies level of detail in output
 double phase_tol = .99;
 
+
+
+/*Function to log to a file the output*/
 void log_data(double* data, int fd, int fd2)
 {
 	char buffer[100];
@@ -45,13 +48,13 @@ void log_data(double* data, int fd, int fd2)
 		//printArray(dest);
 	}			
 
-
+//format header for compatibilitiy
 	char head[128] = "Source USAVG.0\n"
 				"Time 0 ms\nExport Particle_Data\n"
 				"Data x y z sxx syy szz sxy sxz syz mat mass\n"
 				"Format text\n"
 				"EndHeader\n";
-
+//write head, exit if bad
 	if(write(fd2,&head ,112) == -1)
 		exit(EXIT_FAILURE);
 
@@ -61,28 +64,25 @@ void log_data(double* data, int fd, int fd2)
 		for (int x = 0; x < size; x++)
 		{
 	
-
-			if(data[x+y*size] >= .99 && last){ 	//.999 is too high. adjusting to .98
+			//if the cell is solid or very close to solid
+			if(data[x+y*size] >= .99 && last){ 	//.999 is too high. 
 				//use a modifyable equation to offset Z
 				//use relative x and y
 				//offset, use square not abs
 				//use dendrite relative locations
 
-				//LINE0: y =  0
-				//LINE1: y =  1.6 * x
-				//LINE2: y = -1.6 * x
-
+				//tab delimited to match the file, 0s in the values we are ignoring for now
 				sprintf(buffer, "%f\t%f\t%f\t0\t0\t0\t0\t0\t0\t0\t0\n", (float)x/10, (float)y/10, -dest[x+y*size]/2);
 				if(write(fd2, &buffer, sizeof(char) * strlen( bPoint)) == -1)
 					exit(EXIT_FAILURE); 
-
+				//print an alternate pnt
 				sprintf(buffer, "%f\t%f\t%f\t0\t0\t0\t0\t0\t0\t0\t0\n", (float)x/10, (float)y/10, dest[x+y*size]/2);
 				if(write(fd2, &buffer, sizeof(char) * strlen( bPoint)) == -1)
 					exit(EXIT_FAILURE);			
 
 			}
 
-
+			//this set of output is used for python drawing, do not modify
 			sprintf(str, "%2.4f", data[x+y*size]);//write vals to string
 			strcat(str, " ");
 			if (write(fd, str, sizeof(char) * strlen(str)) == -1)
@@ -95,6 +95,7 @@ void log_data(double* data, int fd, int fd2)
 			//data[x+y*size] = tmp;//reinstate true value
 		}
 	}
+	//loop closed writing for python, again do not modify
 	sprintf(str, "\n");
 	if (write(fd, str, sizeof(char) * strlen(str)) == -1)
     {
@@ -112,25 +113,26 @@ void log_data(double* data, int fd, int fd2)
 
 int main()
 {
-	double dx 	 = 0.03; //m
-	double dy 	 = 0.03; //m
+	double dx 	 = 0.03; //
+	double dy 	 = 0.03; //
 	double dt 	 = 0.0003; //s
 	//.0003 dt is best for speed
-	double t_final = 0.3; // total simulation time (increments of dt)
+	double t_final = 0.3; 		// total simulation time (increments of dt)
   
-	double tau 	     = 0.0003; //phase field relaxation time
-	double delta_bar = 0.01; // Average thickness of layer (?)
-	double F 		 = 1.6; // Latent heat of fusion
+	double k 		 = 1.6; // Latent heat of fusion
+	double tau 	     = 0.0003; 	//phase field relaxation time
+	double delta_bar = 0.01; 	// Average thickness of layer (?)
 
-	double mu 		  = 0.05; // Strength of anisotropy .02 default
-	double anisotropy = 6.0;  //6.0 default
-	double beta 	  = .9; // n-shifting coefficient .9 def
-	double eta 		  = 10.0; // n-shifting coefficient??? 10.0 default
-	double TM 		  = 1.0;  // 1.0 Default
-	double T0 		  = 0.0;  // 0 default
-	double theta_0 	  = 1.57; // 1.57 default
+
+	double mu 		  = 0.05; 	// Strength of anisotropy .02 default
+	double anisotropy = 6.0;  		//6.0 default
+	double alpha 	  = .9; 		// n-shifting coefficient .9 def
+	double gamma 		  = 10.0; 	// 10.0 default
+	double TM 		  = 1.0;  	// 1.0 Default Both T0 and TM are used once.
+	double T0 		  = 0.0;  	// 0 default
+	double theta_0 	  = 1.57; 		// 1.57 default
   
-	int r 			    = 3; // initial condition radius
+	int r 			    = 3; 	// initial condition radius
 
 	double eccentricity = 1.0; // Playing w/ elliptical initial conditions 1 = circle
 		//changing eccentricity slows it in all cases 
@@ -220,6 +222,7 @@ int main()
 				if (yp==size) yp = 0;
 				if (xp==size) xp = 0;
 
+				
 				dphi_dx[x+y*size] = (phi[xp+y*size] - phi[xm+y*size]) / dx;
 				dphi_dy[x+y*size] = (phi[x+yp*size] - phi[x+ym*size]) / dy;
 
@@ -250,12 +253,12 @@ int main()
 				term2 = (delta[x+yp*size]*delta_dt[x+yp*size]*dphi_dx[x+yp*size]
 						- delta[x+ym*size]*delta_dt[x+ym*size]*dphi_dx[x+ym*size]) / (2*dy);
 				term3 = ddelta2_dx*dphi_dx[x+y*size] + ddelta2_dy*dphi_dy[x+y*size];
-				n = beta/M_PI * atan(-eta*(TM-T0)*u[x+y*size]);
+				n = alpha/M_PI * atan(-gamma*(TM-T0)*u[x+y*size]);
 				phi_new[x+y*size] = phi[x+y*size] + (term1 + term2 + term3 +
 									delta[x+y*size]*delta[x+y*size]*lap_phi[x+y*size] +
 									phi[x+y*size]*(1.0-phi[x+y*size])*(phi[x+y*size] - 0.5 + n)) * dt / tau;
 	
-				u_new[x+y*size] = u[x+y*size] + lap_u[x+y*size]*dt + F*(phi_new[x+y*size] - phi[x+y*size]);
+				u_new[x+y*size] = u[x+y*size] + lap_u[x+y*size]*dt + k*(phi_new[x+y*size] - phi[x+y*size]);
 			}
 		}
     
