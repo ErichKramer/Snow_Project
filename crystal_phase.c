@@ -192,6 +192,7 @@ int main()
 			phi_grad_angle[x+y*size] = 0;
 
 
+			//set the nuclei
 			if (eccentricity*(x-size/2.0)*(x-size/2.0) + (y-size/2.0)*(y-size/2.0) < r*r)
 				phi[x+y*size] = 1.0; //fills all but large x and y values with 1.0
       
@@ -206,12 +207,16 @@ int main()
 	double ddelta2_dx, ddelta2_dy, term1, term2, term3, n;
 	for (t=0; t<t_final; t+=dt)
 	{
+		//set information print for each 100th step
 		if ((int)(t/dt) % (int)(t_final/(dt*10)) == 0)
 			printf("step %g of %g\n", t/dt, t_final/dt);
 		for (int y = 0; y<size; y++)
 		{
 			for (int x = 0; x<size; x++)
 			{
+				//periodic boundary condition
+				//x plus and x minus, y plus and y minus
+				//used in checking the 3x3 quad
 				ym = y-1;
 				yp = y+1;
 				xm = x-1;
@@ -222,10 +227,11 @@ int main()
 				if (yp==size) yp = 0;
 				if (xp==size) xp = 0;
 
-				
+				//calculate the gradient
 				dphi_dx[x+y*size] = (phi[xp+y*size] - phi[xm+y*size]) / dx;
 				dphi_dy[x+y*size] = (phi[x+yp*size] - phi[x+ym*size]) / dy;
-
+				
+				//laplacian calc
 				lap_phi[x+y*size] = ((phi[xm+ym*size]  +
 							phi[xm+y*size]   +
 							phi[xm+yp*size]  +
@@ -243,6 +249,8 @@ int main()
 							u[xp+ym*size]  +
 							u[xp+y*size]   +
 							u[xp+yp*size]) - 8.0*u[x+y*size]) / (3.0*dx*dx);
+
+				//
 				phi_grad_angle[x+y*size] = atan2(dphi_dy[x+y*size], dphi_dx[x+y*size]);
 				delta[x+y*size] = delta_bar*(1.0 + mu * cos(anisotropy*(theta_0 - phi_grad_angle[x+y*size])));
 				delta_dt[x+y*size] = -delta_bar*anisotropy*mu*sin(anisotropy*phi_grad_angle[x+y*size]);
