@@ -4,6 +4,8 @@
 #include <assert.h>
 
 
+typedef struct snowflake snowflake;
+
 struct snowflake{
     int idx;
 
@@ -16,8 +18,14 @@ struct snowflake{
     int xMax, yMax, zMax;//qed
     int xMin, yMin, zMin;
 
+    //variables for ellipsoid description
+    //x^2/a^2 + y^2/b^2 + z^2/c^2 = 1
+    float eX, eY, eZ;
+    
+
     snowflake** neighborCollisions;//set of nearby structs
     int nColSize;//num of elements in neighbor
+
 };
 
 //initialize values based on params
@@ -27,16 +35,22 @@ snowflake* initSnowflake(int x, int y, int idx){
     s->originY = y;
     s->idx = idx;
 
-    voxCubeLen = 0;
-    nColSize = 0;
-    voxelSpace = NULL;   
-    neighborCollisions = NULL;
+    s->voxCubeLen = 0;
+    s->nColSize = 0;
+    s->voxelSpace = NULL;   
+    s->neighborCollisions = NULL;
 }
 
 void setOrigin(snowflake* s, int x, int y){
     s->originX = x;
     s->originY = y;
 }
+
+void setEllipses(){
+
+
+}
+
 
 
 snowflake* convertPlaneHeights(snowflake* s, double* arr, int size ){
@@ -47,7 +61,7 @@ snowflake* convertPlaneHeights(snowflake* s, double* arr, int size ){
         int z = ceil(arr[i]/ 2.) ;//formula for z value
         for(int j = 0; j < size; j+){
             
-            
+            //UNFINISHED IMPLEMENTATION
         }
 
     }
@@ -74,50 +88,6 @@ change extension to .out instead
 
 
 
-
-/*
-	Need a struct representation of snowflake:
-		Index Identifier?   (memory)
-		3d array of coordinates, 
-		localized origin(center)    (scene)
-[array]	Mximum and minimum values of each x, y, and z
-        
-	void (*function) int??
-[array]	a,b,c coefficients for the ellipse
-
-	array of pointers to neighbors? or integers of indecies in the array
-
-// What about a three-way collision?
-
-
-For collisions it is okay to lose information because neighbors are stored
-
-if we are updating ellipses we are doing something wrong
-
-*/
-/*
-Other:
-{
-Simple Z values - Pyramid
-
-Crystal growth papers- Read 2
-Hexagonal shapes paper (email available)
-
-Find out details about the coefficients. Is it possible to create other shapes
-
-
-Watch rendering series
-
-Install Mitsuba
-
-}
-
-comment everything, touch up code
-read papers, get snowflake structures working fully.
-Fix Zed Value, email to paris?
-
-So that Paris can understand
-*/
 
 
 

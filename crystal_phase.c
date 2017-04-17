@@ -70,13 +70,13 @@ void log_data(double* data, int fd, int fd2)
 				//use relative x and y
 				//offset, use square not abs
 				//use dendrite relative locations
-
+				z = dest[x+y*size]/2;
 				//tab delimited to match the file, 0s in the values we are ignoring for now
-				sprintf(buffer, "%f\t%f\t%f\t0\t0\t0\t0\t0\t0\t0\t0\n", (float)x/10, (float)y/10, -dest[x+y*size]/2);
+				sprintf(buffer, "%f\t%f\t%f\t0\t0\t0\t0\t0\t0\t0\t0\n", (float)x/10, (float)y/10, -z);
 				if(write(fd2, &buffer, sizeof(char) * strlen( bPoint)) == -1)
 					exit(EXIT_FAILURE); 
 				//print an alternate pnt
-				sprintf(buffer, "%f\t%f\t%f\t0\t0\t0\t0\t0\t0\t0\t0\n", (float)x/10, (float)y/10, dest[x+y*size]/2);
+				sprintf(buffer, "%f\t%f\t%f\t0\t0\t0\t0\t0\t0\t0\t0\n", (float)x/10, (float)y/10,  z);
 				if(write(fd2, &buffer, sizeof(char) * strlen( bPoint)) == -1)
 					exit(EXIT_FAILURE);			
 
