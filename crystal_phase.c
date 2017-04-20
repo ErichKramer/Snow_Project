@@ -22,65 +22,40 @@ const int animate  = 1; 	// animate flag, 1 = animate, 0 = only last frame
 const int skiprate = 100;   // 1 = log all frames, log every nth frame
 const int debug    = 0;		// whether to dump phi to stdout
 
-int last = 1;//global boolean indicates program is ending
 
 //specifies level of detail in output
 double phase_tol = .99;
 
 
 
-/*Function to log to a file the output*/
-void log_data(double* data, int fd, int fd2)
-{
-	char buffer[100];
-	const char* bPoint = buffer;
-
-	int count = 0;
-	char* str = malloc(10 * sizeof(char));//
-	double* dest = malloc(sizeof(double) * (size*size));
-	if(last){
-
-		for(int i = 0; i < size*size; i++){
-			dest[i] = 0;
-		}
-//		printArray(dest);
-		contour(data, dest, (int)size/2, (int)size/2);
-		//printArray(dest);
-	}			
-
-//format header for compatibilitiy
+/*
+ //format header for compatibilitiy
 	char head[128] = "Source USAVG.0\n"
 				"Time 0 ms\nExport Particle_Data\n"
 				"Data x y z sxx syy szz sxy sxz syz mat mass\n"
 				"Format text\n"
 				"EndHeader\n";
 //write head, exit if bad
-	if(write(fd2,&head ,112) == -1)
-		exit(EXIT_FAILURE);
 
+
+ 
+ * */
+
+
+
+/*Function to log to a file for python reading*/
+void log_python(double* data, int fd)
+{
+	char buffer[100];
+	const char* bPoint = buffer;
+
+	char* str = malloc(10 * sizeof(char));
+	
 
 	for (int y = 0; y < size; y++)
 	{
 		for (int x = 0; x < size; x++)
 		{
-	
-			//if the cell is solid or very close to solid
-			if(data[x+y*size] >= .99 && last){ 	//.999 is too high. 
-				//use a modifyable equation to offset Z
-				//use relative x and y
-				//offset, use square not abs
-				//use dendrite relative locations
-				z = dest[x+y*size]/2;
-				//tab delimited to match the file, 0s in the values we are ignoring for now
-				sprintf(buffer, "%f\t%f\t%f\t0\t0\t0\t0\t0\t0\t0\t0\n", (float)x/10, (float)y/10, -z);
-				if(write(fd2, &buffer, sizeof(char) * strlen( bPoint)) == -1)
-					exit(EXIT_FAILURE); 
-				//print an alternate pnt
-				sprintf(buffer, "%f\t%f\t%f\t0\t0\t0\t0\t0\t0\t0\t0\n", (float)x/10, (float)y/10,  z);
-				if(write(fd2, &buffer, sizeof(char) * strlen( bPoint)) == -1)
-					exit(EXIT_FAILURE);			
-
-			}
 
 			//this set of output is used for python drawing, do not modify
 			sprintf(str, "%2.4f", data[x+y*size]);//write vals to string
@@ -92,7 +67,6 @@ void log_data(double* data, int fd, int fd2)
 			}
 			//write string, error handle
 
-			//data[x+y*size] = tmp;//reinstate true value
 		}
 	}
 	//loop closed writing for python, again do not modify
@@ -103,15 +77,22 @@ void log_data(double* data, int fd, int fd2)
 		exit(EXIT_FAILURE);
     }
 	free(str);//fix leak
-	free(dest);
+}
+
+
+double* data_log();
+
+int main(){
+    double* s1 = data_log(1);
+
+    free(s1);
+    return 0;
 }
 
 
 
 
-
-
-int main()
+double* data_log(int flag)
 {
 	double dx 	 = 0.03; //
 	double dy 	 = 0.03; //
@@ -122,7 +103,6 @@ int main()
 	double k 		 = 1.6; // Latent heat of fusion
 	double tau 	     = 0.0003; 	//phase field relaxation time
 	double delta_bar = 0.01; 	// Average thickness of layer (?)
-
 
 	double mu 		  = 0.05; 	// Strength of anisotropy .02 default
 	double anisotropy = 6.0;  		//6.0 default
@@ -138,24 +118,10 @@ int main()
 		//changing eccentricity slows it in all cases 
 
 
-	int fd;
-	if ((fd = open("data.txt", O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IWOTH | S_IROTH)) == -1)
-	//make data.txt and write
-    {
-		perror("open failed: ");
-		exit(EXIT_FAILURE);
-    }
-
-	int fd2;
-	if ((fd2 = open("data10.ply", O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IWOTH | S_IROTH)) == -1)
-	//make data.txt and write
-    {
-		perror("open failed: ");
-		exit(EXIT_FAILURE);
-    }
-
-
-	double t 			   	= 0;
+	/*
+		create many 2D arrays of size-by-size
+	*/  
+    double t 			   	= 0;
 	int arrsize 		   	= size*size;
 	double* delta 		   	= malloc(sizeof(double) * arrsize);
 	double* delta_dt 	   	= malloc(sizeof(double) * arrsize);
@@ -170,11 +136,6 @@ int main()
 	double* phi_grad_angle 	= malloc(sizeof(double) * arrsize);
 	double* height		   	= malloc(sizeof(double) * arrsize);
 	
-	/*
-		create many 2D arrays of size-by-size
-	*/  
-
-
 	for (int y = 0; y<size; y++)
 	{
 		for (int x = 0; x<size; x++)
@@ -199,9 +160,19 @@ int main()
 		}
 	}
 
+	//make data.txt and write
+	int fd;
+	if ((fd = open("data.txt", O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IWOTH | S_IROTH)) == -1)
+    {
+		perror("open failed: ");
+		exit(EXIT_FAILURE);
+    }
+
+    //first frame no growth
 	if (animate)
-		log_data(phi, fd, fd2);
-	last = 1;
+		log_python(phi, fd);
+
+
 
 	int ym, yp, xm, xp;
 	double ddelta2_dx, ddelta2_dy, term1, term2, term3, n;
@@ -275,8 +246,6 @@ int main()
 			for (int x = 0; x<size; x++)
 			{
 				if (debug) printf("%2.4g ", lap_u[x+y*size]*dt);
-				//if (debug) printf("%2.4g ", u[x+y*size]);
-				//if (debug) printf("%2.4g ", phi[x+y*size]);
 				phi[x+y*size] = phi_new[x+y*size];
 				u[x+y*size] = u_new[x+y*size];
 			}
@@ -288,25 +257,18 @@ int main()
 			char buffer[32];
 			sprintf(buffer, "data%d.ply", (int)(t/dt)/100);
 
-			if ((fd2 = open(buffer, O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IWOTH | S_IROTH)) == -1)
-			//make data.txt and write
-			{
-				perror("open failed: ");
-				exit(EXIT_FAILURE);
-			}
-
-			log_data(phi, fd, fd2);
+			log_python(phi, fd);
 		}
 
 	}
-	last = 1;
-	log_data(phi, fd, fd2);
+	log_python(phi, fd);
 	close(fd);
-	close(fd2);
 	free(delta);
 	free(delta_dt);
 	free(u);
-	free(phi);
+
+//final phi exists last here
+
 	free(dphi_dx);
 	free(dphi_dy);
 	free(lap_u);
@@ -316,7 +278,7 @@ int main()
 	free(phi_grad_angle);
 	free(height);
 
-
+    return phi;
 }
 
 
