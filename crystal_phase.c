@@ -162,16 +162,19 @@ double* data_log(int flag)
 
 	//make data.txt and write
 	int fd;
-	if ((fd = open("data.txt", O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IWOTH | S_IROTH)) == -1)
-    {
-		perror("open failed: ");
-		exit(EXIT_FAILURE);
+
+    //enclose all 
+    if(flag){
+        if ((fd = open("data.txt", O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IWOTH | S_IROTH)) == -1)
+        {
+            perror("open failed: ");
+            exit(EXIT_FAILURE);
+        }
+
+        //first frame no growth
+        if (animate)
+            log_python(phi, fd);
     }
-
-    //first frame no growth
-	if (animate)
-		log_python(phi, fd);
-
 
 
 	int ym, yp, xm, xp;
