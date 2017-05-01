@@ -3,6 +3,9 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <math.h>
+#include "stdio.h"
+
+int size;
 
 typedef struct snowflake snowflake;
 
@@ -24,7 +27,7 @@ struct snowflake{
     
 
     snowflake** neighborCollisions;//set of nearby structs
-    int nColSize;//num of elements in neighbor
+    int neighSize;//num of elements in neighbor
 
 };
 
@@ -37,7 +40,7 @@ snowflake* initSnowflake(int x, int y, int z, int idx){
     s->idx = idx;
 
     s->voxCubeLen = 0;
-    s->nColSize = 0;
+    s->neighSize = 0;
     s->voxelSpace = NULL;   
     s->neighborCollisions = NULL;
 }
@@ -49,9 +52,8 @@ void setOrigin(snowflake* s, int x, int y, int z){
 }
 
 void setEllipses(snowflake* s, int x, int y, int z){
-    s->eX = x;
-    s->eY = y;
-    s->eZ = z;
+
+    s->eX = x; s->eY = y; s->eZ = z;
 
     s->xMin = s->originX - x;
     s->xMax = s->originX + x;
@@ -63,18 +65,6 @@ void setEllipses(snowflake* s, int x, int y, int z){
     s->zMax = s->originZ + z;
 }
 
-
-/* Deprecated, for now
-int doesCollide(snowflake* a, snowflake* b){
-    //determine if given snowflakes hit each other
-
-    //Vector pointing from A to B
-    int vec[3] = {a->originX- b->originX, 
-            a->originY- b->originY,
-            a->originZ- b->originZ };
-
-}
-*/
 
 //Finished implementation
 int boxCollide(snowflake* a, snowflake* b){
@@ -88,40 +78,86 @@ int boxCollide(snowflake* a, snowflake* b){
     }
     return 0;
 
+    //include methods for 
+}
+
+
+
+void printNeighbors(snowflake* s){
+
+    int i;
+    for( i = 0; i < s->neighSize; i++){
+        
+
+    }
+
 
 }
 
 
-snowflake* import2DArr(snowflake* s, double* arr, int size ){
+void import2DArr(snowflake* s, double* arr, int size ){
 //construct voxel shell from x,y cooords
     int centerPlane = size/2;//center plane of sflake
-    s->voxelSpace = malloc(sizeof(double)*size*size*size);
-    int z
-    for( int i = 0; i<size; i++){
+    printf("Entered the import func\n");
+    s->voxelSpace = malloc(sizeof(double) * size*size*size);
+    int z=0;
+    printf("dSize: %f\n", dSize);
+    for( int i = 0; i < size; i++){
+
         //formula for z value
         for(int j = 0; j < size; j++){
-            if(z = a[j+ i*size]){
-                s->voxelSpace[j+i*size+(z*size*size)/2] = 1;
-                s->voxelSpace[j+i*size-(z*size*size)/2] = 1;
 
+ //           printf(" arr[j+isize] = %f\n", arr[j+i*size]);
+            if(z = arr[j+ i*size] ){
+            //everything inbetween top and bottom = -1
+                for(int n = 0; n < z-1; n++){
 
+//                    printf("Internal For\n");
+//                    s->voxelSpace[j+i*size + (n*size*size)/2] = -1; 
+//                    s->voxelSpace[j+i*size - (n*size*size)/2] = -1; 
+                }
+                //add to the top and bottom of the shell
+//change how this indexes
+
+                s->voxelSpace[j+i*size-((z/2)*size*size)] = 1;//bottom
+                s->voxelSpace[j+i*size+((z/2)*size*size)] = 1;//top
+                printf("Unit: %f\n", s->voxelSpace[j+i*size+((z/2)*size*size)]);
             }
-            //UNFINISHED IMPLEMENTATION
         }
 
     }
+    printf("Outside of Import2D loops\n");
+
 }
 
 void updateMaxMin(snowflake* s){
     assert(s->voxelSpace != NULL);
-    int i;
-    for( i = 0; i < s->voxCubeLen; i++){
-    //for each plane scan for a valid z value, stop if found
+    int x,y,z;
+    
+    int yMax, xMax, zMax = 0;
+    for( z = 0; z  < s->voxCubeLen; z++){
+        for( y = 0; y < s->voxCubeLen; y++){
+            for(x = 0; x < s->voxCubeLen; x++){
+                if(s->voxelSpace[z*size*size + y*size + x]){
+                    if(x > xMax){
+                        xMax = x;
+                    }
+                    if(y > yMax){
+                        yMax = y;
+                    }
+                    if(z > zMax){
+                        zMax = z;
+                    }
+
+                }
+            }
+        }
+
 
     }
-
+    //for each plane scan for a valid z value, stop if found
+        
 //flip a bool when going from hit to not hit
-
 }
 
 /*
