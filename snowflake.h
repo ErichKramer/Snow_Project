@@ -95,38 +95,32 @@ void printNeighbors(snowflake* s){
 }
 
 
-void import2DArr(snowflake* s, double* arr, int size ){
 //construct voxel shell from x,y cooords
-    int centerPlane = size/2;//center plane of sflake
-    printf("Entered the import func\n");
+void import2DArr(snowflake* s, double* arr, int size ){
+
     s->voxelSpace = malloc(sizeof(double) * size*size*size);
     int z=0;
-    printf("dSize: %f\n", dSize);
+    int idx;
+    int cubeSize = size*size; //prevent excessive mul, used for z
+    int centerPlane = size/2;//center plane of sflake
+
     for( int i = 0; i < size; i++){
 
         //formula for z value
         for(int j = 0; j < size; j++){
 
- //           printf(" arr[j+isize] = %f\n", arr[j+i*size]);
-            if(z = arr[j+ i*size] ){
-            //everything inbetween top and bottom = -1
+            if(z = arr[j+ i*size] ){\
                 for(int n = 0; n < z-1; n++){
-
-//                    printf("Internal For\n");
-//                    s->voxelSpace[j+i*size + (n*size*size)/2] = -1; 
-//                    s->voxelSpace[j+i*size - (n*size*size)/2] = -1; 
+                    s->voxelSpace[j + i*size + (centerPlane +n/2)*cubeSize ]=-1;
+                    s->voxelSpace[j + i*size + (centerPlane -n/2)*cubeSize ]=-1;
                 }
-                //add to the top and bottom of the shell
-//change how this indexes
+                s->voxelSpace[j + i*size + (centerPlane +z/2)*cubeSize ]=1;
+                s->voxelSpace[j + i*size + (centerPlane -z/2)*cubeSize ]=1;
 
-                s->voxelSpace[j+i*size-((z/2)*size*size)] = 1;//bottom
-                s->voxelSpace[j+i*size+((z/2)*size*size)] = 1;//top
-                printf("Unit: %f\n", s->voxelSpace[j+i*size+((z/2)*size*size)]);
             }
         }
 
     }
-    printf("Outside of Import2D loops\n");
 
 }
 

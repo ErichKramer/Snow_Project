@@ -24,7 +24,7 @@ const int debug    = 0;		// whether to dump phi to stdout
 
 
 //specifies level of detail in output
-double phase_tol = .99;
+//double phase_tol = .99;
 
 
 
@@ -137,7 +137,7 @@ double* data_log();
 
 
 
-double* data_log(int flag)
+double* gen_crystal(int flag)//log progression for python
 {
 	double dx 	 = 0.03; //
 	double dy 	 = 0.03; //
@@ -300,11 +300,8 @@ double* data_log(int flag)
 			if (debug) printf("\n");
 		}
 		if (debug) printf("\n");
-		if (flag && (int)(t/dt) % skiprate == 0){ 
-			//int fd2;
-			//char buffer[32];
-			//sprintf(buffer, "data%d.ply", (int)(t/dt)/100);
 
+		if (flag && (int)(t/dt) % skiprate == 0){ 
 			log_python(phi, fd);
 		}
 

@@ -3,7 +3,7 @@
 
 //variables assigned in crystal_phase
 int size;
-double phase_tol;
+double phase_tol = .99;
 //dest is init to 0, src is the double array
 int contour2D(double *src, double *dest, int x, int y){
 
@@ -45,23 +45,28 @@ int contour2D(double *src, double *dest, int x, int y){
 }
 
 
-//straight copy of 2D, yet to be changed
-int contour3D(double *src, double *dest, int x, int y, int z){
+//assumes dest is initialized to zero
+int contour3D(double *src, double *dest, int x, int y, int z, int size){
+    int idx = z*size*size + y*size + x;
 
 	if(x < 0 || y < 0 || z < 0 || x >= size || y >= size|| z >= size)//out of bounds case
 		return -1;//same case for when active if oob
 
-	if(dest[z*size*size + y*size +x] > 0){//if this spot is solved
-		return dest[z*size*size +y*size +x];//don't solve again, return it.
+	if(dest[idx] != 0){//if this spot is solved, or active
+		return dest[idx];//don't solve again, return it.
 	}
-
+    //zero in source implies border
+    if(src[idx] == 0){
+        return 0;
+    }
+/*
 	if(dest[z*size*size+ y*size +x]==-1){//if active return active
 		return -1;
 	}
-
 	if(src[z*size*size+ y*size+x] < phase_tol){//must be here to close recursion
 		return dest[z*size*size+ y*size +x] = 0;
 	}
+*/
 
 	dest[y*size +x] = -1;//set active if all cases pass
 
@@ -77,13 +82,13 @@ int contour3D(double *src, double *dest, int x, int y, int z){
                     min = tmp;
                 }
                 if(tmp ==0)
-                    return dest[z*size*size + y*size +x] = min+1;
+                    return dest[idx] = 1;
 
             }
         }
     }
-	src[z*size*size + y*size +x] = 1;
-	return (dest[z*size*size + y*size +x] = min+1);
+	src[idx] = 1;
+	return (dest[idx] = min+1);
 	
 }
 
