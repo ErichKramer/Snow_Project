@@ -16,7 +16,7 @@
 int main(){
 
     snowflake* a = initSnowflake(0, 0, 0, -1);
-    snowflake* b = initSnowflake(1, 1, 1, -1);
+    snowflake* b = initSnowflake(50, 50, 0, -1);
 
     double* tmp = gen_crystal(0);
     double* tmpContour = malloc(sizeof(double) * size*size);
@@ -40,9 +40,11 @@ int main(){
 
 //    log_python(a->voxelSpace, fd);
     
+    displayExtreme(a);
+    displayExtreme(b);
 
     if(boxCollide(a, b)){
-        printf("Collision");
+        printf("Collision\n");
     }
 
     close(fd);

@@ -43,6 +43,15 @@ snowflake* initSnowflake(int x, int y, int z, int idx){
     s->neighSize = 0;
     s->voxelSpace = NULL;   
     s->neighborCollisions = NULL;
+
+    s->xMax = 0;
+    s->yMax = 0;
+    s->zMax = 0;
+    s->xMin = size;
+    s->yMin = size;
+    s->zMin = size;
+
+
 }
 
 void setOrigin(snowflake* s, int x, int y, int z){
@@ -51,6 +60,7 @@ void setOrigin(snowflake* s, int x, int y, int z){
     s->originZ = z;
 }
 
+//set the bounds
 void setEllipses(snowflake* s, int x, int y, int z){
 
     s->eX = x; s->eY = y; s->eZ = z;
@@ -63,6 +73,16 @@ void setEllipses(snowflake* s, int x, int y, int z){
 
     s->zMin = s->originZ - z;
     s->zMax = s->originZ + z;
+}
+
+
+void displayExtreme(snowflake* s){
+
+    printf("Min X: %f Max X: %f \n", s->xMin, s->xMax);
+    printf("Min Y: %f Max Y: %f \n", s->yMin, s->yMax);
+    printf("Min Z: %f Max Z: %f \n", s->zMin, s->zMax);
+
+
 }
 
 
@@ -98,6 +118,7 @@ void printNeighbors(snowflake* s){
 //construct voxel shell from x,y cooords
 void import2DArr(snowflake* s, double* arr, int size ){
 
+
     s->voxelSpace = malloc(sizeof(double) * size*size*size);
     int z=0;
     int idx;
@@ -109,7 +130,7 @@ void import2DArr(snowflake* s, double* arr, int size ){
         //formula for z value
         for(int j = 0; j < size; j++){
 
-            if(z = arr[j+ i*size] ){\
+            if(z = arr[j+ i*size] ){
                 for(int n = 0; n < z-1; n++){
                     s->voxelSpace[j + i*size + (centerPlane +n/2)*cubeSize ]=-1;
                     s->voxelSpace[j + i*size + (centerPlane -n/2)*cubeSize ]=-1;
@@ -117,11 +138,25 @@ void import2DArr(snowflake* s, double* arr, int size ){
                 s->voxelSpace[j + i*size + (centerPlane +z/2)*cubeSize ]=1;
                 s->voxelSpace[j + i*size + (centerPlane -z/2)*cubeSize ]=1;
 
+                if( i < s->xMin) s->xMin = i;
+                if( i > s->xMax) s->xMax = i;
+                if( j < s->yMin) s->yMin = j;
+                if( j > s->yMax) s->yMax = j;
+                if( z > s->zMax) {
+                    s->zMin = -z;
+                    s->zMax =  z;
+                }
             }
         }
-
     }
 
+    s->xMin += s->originX;
+    s->yMin += s->originY;
+    s->zMin += s->originZ;
+
+    s->xMax += s->originX;
+    s->yMax += s->originY;
+    s->zMax += s->originZ;
 }
 
 void updateMaxMin(snowflake* s){

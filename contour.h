@@ -59,16 +59,8 @@ int contour3D(double *src, double *dest, int x, int y, int z, int size){
     if(src[idx] == 0){
         return 0;
     }
-/*
-	if(dest[z*size*size+ y*size +x]==-1){//if active return active
-		return -1;
-	}
-	if(src[z*size*size+ y*size+x] < phase_tol){//must be here to close recursion
-		return dest[z*size*size+ y*size +x] = 0;
-	}
-*/
 
-	dest[y*size +x] = -1;//set active if all cases pass
+	dest[idx] = -1;//set active if all cases pass
 
 	int min = size*size*size;
 	int tmp;
@@ -77,7 +69,7 @@ int contour3D(double *src, double *dest, int x, int y, int z, int size){
         for(int i = -1; i < 2; i++){
             for(int j = -1; j < 2; j++){
 
-                tmp = contour3D(src, dest, x+j, y+i, z+k);
+                tmp = contour3D(src, dest, x+j, y+i, z+k, size);
                 if( tmp != -1 && tmp < min){
                     min = tmp;
                 }
