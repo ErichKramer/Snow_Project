@@ -1,6 +1,5 @@
 
 #include "snowflake.h"
-#include "crystal_phase.h"
 
 
 #include <stdio.h>
@@ -44,7 +43,8 @@ int main(){
     displayExtreme(b);
 
     if(boxCollide(a, b)){
-        printf("Collision\n");
+        printf("Collision\nPrinting to File...\n");
+        printNeighbors(a, "collision.txt");
     }
 
     close(fd);

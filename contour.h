@@ -5,6 +5,9 @@
 int size;
 double phase_tol = .99;
 //dest is init to 0, src is the double array
+
+int contour3D(double*, double*, int,int,int,int);
+
 int contour2D(double *src, double *dest, int x, int y){
 
 	if(x < 0 || y < 0 || x >= size || y >= size)//out of bounds case
@@ -44,6 +47,25 @@ int contour2D(double *src, double *dest, int x, int y){
 	
 }
 
+/*  Deprecated
+void wrap3D(double* src, double* dest, int size){
+
+    //this can be sped up by memoizing z*size*size and having it be the 
+    //external loop
+    for(int x = 0; x < size; x++){
+        for(int y = 0; y < size; y++){
+            for(int z = 0; z < size; z++){
+                if(src[x + y*size + z*size*size] ==1){
+                    printf("calling contour\n");
+                    contour3D( src, dest, x, y, z, size);
+                    return;
+                }
+
+            }
+        }
+    }
+    
+}
 
 //assumes dest is initialized to zero
 int contour3D(double *src, double *dest, int x, int y, int z, int size){
@@ -85,7 +107,7 @@ int contour3D(double *src, double *dest, int x, int y, int z, int size){
 }
 
 
-
+*/
 
 
 void printArray(double *a){

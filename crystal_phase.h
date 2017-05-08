@@ -6,7 +6,6 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
-#include "contour.h"
 
 //const double m_pi  =  3.14159265358979323846;
 //use C constant M_PI instead since math.h is included
@@ -81,28 +80,26 @@ void log_python(double* data, int fd)
 }
 
 
-void write_file(char* file, double* geom, int dim){
+void write_file(int fd,  double* geom, int lsize,  int dim){
+
 
     char buffer[100];
     char* bPoint = buffer;
-    int fd;
-    if(fd = open(file, O_WRONLY | O_CREAT |O_TRUNC, S_IRUSR|S_IWUSR|S_IWGRP|S_IWOTH|S_IROTH) ==-1 ){
-        perror("Open Fail");
-        exit(EXIT_FAILURE);
-    }
 
     int x, y, z = 0;
-    x = size;
+    x = lsize;
     if (dim >= 2){
-        y = size-1;
+        y = lsize-1;
     }
     if (dim >= 3){
-        z = size-1;
+        z = lsize-1;
     }
     for(int i = 0; i < z+1; i++){
         for( int j = 0; j< y+1; j++){
             for( int k = 0; k < x; k++){
-                if( geom[size*size*z + size*y + x]){
+                
+                if( geom[lsize*lsize*z + lsize*y + x]){
+                    printf("Hit\n");
                     sprintf(bPoint, "%f\t%f\t0\t0\t0\t0\t0\t0\t0\t0\t\n", 
                             (float)x/10, (float)y/10, (float)z/10);
                     if(write(fd, bPoint, sizeof(char) * strlen(bPoint)) ==-1){

@@ -3,7 +3,10 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <math.h>
-#include "stdio.h"
+#include <stdio.h>
+#include "contour.h"
+#include "crystal_phase.h"
+
 
 int size;
 
@@ -42,7 +45,7 @@ snowflake* initSnowflake(int x, int y, int z, int idx){
     s->voxCubeLen = 0;
     s->neighSize = 0;
     s->voxelSpace = NULL;   
-    s->neighborCollisions = NULL;
+    s->neighborCollisions = malloc(sizeof(void*)* 32);
 
     s->xMax = 0;
     s->yMax = 0;
@@ -53,6 +56,8 @@ snowflake* initSnowflake(int x, int y, int z, int idx){
 
 
 }
+
+
 
 void setOrigin(snowflake* s, int x, int y, int z){
     s->originX = x;
@@ -85,6 +90,84 @@ void displayExtreme(snowflake* s){
 
 }
 
+void printNeighbors(snowflake* s, char* file){
+
+    int fd;
+    if(fd = open(file, O_WRONLY | O_CREAT |O_TRUNC, S_IRUSR|S_IWUSR|S_IWGRP|S_IWOTH|S_IROTH) ==-1){
+        perror("Open Fail");
+        exit(EXIT_FAILURE);
+    }
+
+//add header
+
+    int i;
+    write_file(fd, s->voxelSpace, size, 3);        
+    for( i = 0; i < s->neighSize; i++){
+        write_file(fd, s->neighborCollisions[i]->voxelSpace, size, 3);
+    }
+
+    close(fd);
+}
+
+
+
+
+void combineGeom(snowflake* a, snowflake* b){
+
+/*  Put it into a Giant 3d array
+ *  use contour3d on that array
+ *  remove points > 1
+ *
+ * */
+    int sizeCube = size*size*size;
+    //9 times for a 3x3x3 cube
+    double* tmp = malloc(27*sizeCube *sizeof(double));
+    double* cmb = malloc(27*sizeCube*sizeof(double));
+    int xDiff = b->originX - a->originX;
+    int yDiff = b->originY - a->originY;
+    int zDiff = b->originZ - a->originZ;
+
+    //our voxel scratch space "tmp" is a rectangular prism 2l * w * h
+    int i;
+ 
+    int altBlock = xDiff + yDiff*3 + zDiff*9;    
+
+    //27/2 - .5 = 13. Center of space
+    //
+    int centerBlock = 13*sizeCube;
+    altBlock    = centerBlock + altBlock;
+
+
+    for(i = 0; i < sizeCube; i++){
+        if(a->voxelSpace[i]){
+            tmp[centerBlock+i] = 1;
+        }
+        if(b->voxelSpace[i]){
+            tmp[altBlock+i] = 1;
+        }
+
+    }
+
+    wrap3D( tmp, cmb,3*size);
+
+    for(i = 0; i < sizeCube; i++){
+        if(cmb[centerBlock+1] ==1 ){
+            a->voxelSpace[i] =1;
+        }
+        else{
+            a->voxelSpace[i] =0;
+        }
+        if(cmb[altBlock+1] ==1 ){
+            b->voxelSpace[i] =1;
+        }
+        else{
+            b->voxelSpace[i] =0;
+        }
+    }   
+    a->neighborCollisions[a->neighSize++] = b;
+    b->neighborCollisions[b->neighSize++] = a;
+}
+
 
 //Finished implementation
 int boxCollide(snowflake* a, snowflake* b){
@@ -92,6 +175,8 @@ int boxCollide(snowflake* a, snowflake* b){
     if( (a->xMax- b->xMin)*(a->xMin - b->xMax) < 0   ){
         if((a->yMax- b->yMin)*(a->yMin - b->yMax) < 0 ){
             if( (a->zMax- b->zMin)*(a->zMin - b->zMax) < 0 ){
+                combineGeom(a, b);
+                
                 return 1;
             }
         }
@@ -103,16 +188,6 @@ int boxCollide(snowflake* a, snowflake* b){
 
 
 
-void printNeighbors(snowflake* s){
-
-    int i;
-    for( i = 0; i < s->neighSize; i++){
-        
-
-    }
-
-
-}
 
 
 //construct voxel shell from x,y cooords
