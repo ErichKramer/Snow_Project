@@ -98,8 +98,7 @@ void write_file(int fd,  double* geom, int lsize,  int dim){
         for( int j = 0; j< y+1; j++){
             for( int k = 0; k < x; k++){
                 
-                if( geom[lsize*lsize*z + lsize*y + x]){
-                    printf("Hit\n");
+                if( geom[lsize*lsize*i + lsize*j + k]){
                     sprintf(bPoint, "%f\t%f\t0\t0\t0\t0\t0\t0\t0\t0\t\n", 
                             (float)x/10, (float)y/10, (float)z/10);
                     if(write(fd, bPoint, sizeof(char) * strlen(bPoint)) ==-1){
@@ -114,7 +113,6 @@ void write_file(int fd,  double* geom, int lsize,  int dim){
 
 
 
-    close(fd);
 }
 
 

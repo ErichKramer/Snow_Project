@@ -30,12 +30,12 @@ int main(){
 
     import2DArr(b, tmpContour, size);
 
-    int fd;
+    /*int fd;
     if(fd = open("file.txt", O_WRONLY | O_CREAT |O_TRUNC, S_IRUSR|S_IWUSR|S_IWGRP|S_IWOTH|S_IROTH) ==-1 ){
         perror("Open Fail");
         exit(EXIT_FAILURE);
     }
-
+*/
 
 //    log_python(a->voxelSpace, fd);
     
@@ -47,7 +47,7 @@ int main(){
         printNeighbors(a, "collision.txt");
     }
 
-    close(fd);
+   // close(fd);
     free(tmp);
     free(tmpContour);
     //   free(tmp2);

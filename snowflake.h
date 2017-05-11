@@ -111,7 +111,6 @@ void printNeighbors(snowflake* s, char* file){
 
 
 
-
 void combineGeom(snowflake* a, snowflake* b){
 
 /*  Put it into a Giant 3d array
@@ -119,51 +118,39 @@ void combineGeom(snowflake* a, snowflake* b){
  *  remove points > 1
  *
  * */
-    int sizeCube = size*size*size;
+    int sizeThree   = 3*size; //prevent extraneous comparison calcs.
+    int sizeTwo     = 2*size;
+    int sizeCube    = size*size*size;
+
     //9 times for a 3x3x3 cube
-    double* tmp = malloc(27*sizeCube *sizeof(double));
-    double* cmb = malloc(27*sizeCube*sizeof(double));
+
     int xDiff = b->originX - a->originX;
     int yDiff = b->originY - a->originY;
     int zDiff = b->originZ - a->originZ;
-
-    //our voxel scratch space "tmp" is a rectangular prism 2l * w * h
-    int i;
- 
-    int altBlock = xDiff + yDiff*3 + zDiff*9;    
-
-    //27/2 - .5 = 13. Center of space
-    //
-    int centerBlock = 13*sizeCube;
-    altBlock    = centerBlock + altBlock;
+    
+    int vecDiff = xDiff + yDiff*size + zDiff*size*size;
 
 
-    for(i = 0; i < sizeCube; i++){
-        if(a->voxelSpace[i]){
-            tmp[centerBlock+i] = 1;
+    for(int i = 0; i < sizeCube; i++){
+        if(vecDiff+i > 0 && vecDiff+i < sizeCube){
+
+            if(b->voxelSpace[i]){
+                if(b->voxelSpace[i] == -1){
+                    a->voxelSpace[i+vecDiff] = -1;
+                }
+                else if (a->voxelSpace[i+vecDiff] != -1){
+                    a->voxelSpace[i+vecDiff] = 1;
+                }
+            }
+            //if b has -1 it was already written to a and this is redundant
+            if(a->voxelSpace[i+vecDiff]){
+                b->voxelSpace[i] = a->voxelSpace[i+vecDiff];
+            }
+            
         }
-        if(b->voxelSpace[i]){
-            tmp[altBlock+i] = 1;
-        }
-
     }
 
-    wrap3D( tmp, cmb,3*size);
-
-    for(i = 0; i < sizeCube; i++){
-        if(cmb[centerBlock+1] ==1 ){
-            a->voxelSpace[i] =1;
-        }
-        else{
-            a->voxelSpace[i] =0;
-        }
-        if(cmb[altBlock+1] ==1 ){
-            b->voxelSpace[i] =1;
-        }
-        else{
-            b->voxelSpace[i] =0;
-        }
-    }   
+   
     a->neighborCollisions[a->neighSize++] = b;
     b->neighborCollisions[b->neighSize++] = a;
 }
@@ -232,6 +219,8 @@ void import2DArr(snowflake* s, double* arr, int size ){
     s->xMax += s->originX;
     s->yMax += s->originY;
     s->zMax += s->originZ;
+    
+    s->voxCubeLen = size;
 }
 
 void updateMaxMin(snowflake* s){
