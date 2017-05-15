@@ -30,27 +30,17 @@ int main(){
 
     import2DArr(b, tmpContour, size);
 
-    /*int fd;
-    if(fd = open("file.txt", O_WRONLY | O_CREAT |O_TRUNC, S_IRUSR|S_IWUSR|S_IWGRP|S_IWOTH|S_IROTH) ==-1 ){
-        perror("Open Fail");
-        exit(EXIT_FAILURE);
-    }
-*/
 
-//    log_python(a->voxelSpace, fd);
-    
-    displayExtreme(a);
-    displayExtreme(b);
+    printLocal(a, "first.txt");
+
 
     if(boxCollide(a, b)){
         printf("Collision\nPrinting to File...\n");
-        printNeighbors(a, "collision.txt");
+        printLocal(a, "collision.txt");
     }
 
-   // close(fd);
     free(tmp);
     free(tmpContour);
-    //   free(tmp2);
 }
 
 

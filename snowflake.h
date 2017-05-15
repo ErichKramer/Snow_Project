@@ -90,7 +90,7 @@ void displayExtreme(snowflake* s){
 
 }
 
-void printNeighbors(snowflake* s, char* file){
+void printLocal(snowflake* s, char* file){
 
     int fd;
     if(fd = open(file, O_WRONLY | O_CREAT |O_TRUNC, S_IRUSR|S_IWUSR|S_IWGRP|S_IWOTH|S_IROTH) ==-1){
@@ -98,12 +98,12 @@ void printNeighbors(snowflake* s, char* file){
         exit(EXIT_FAILURE);
     }
 
-//add header
 
     int i;
-    write_file(fd, s->voxelSpace, size, 3);        
+    write_file3D(fd, s->voxelSpace, size);//this is breaking
+
     for( i = 0; i < s->neighSize; i++){
-        write_file(fd, s->neighborCollisions[i]->voxelSpace, size, 3);
+        write_file3D(fd, s->neighborCollisions[i]->voxelSpace, size);
     }
 
     close(fd);

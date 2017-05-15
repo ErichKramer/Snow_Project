@@ -56,7 +56,7 @@ void log_python(double* data, int fd)
 	{
 		for (int x = 0; x < size; x++)
 		{
-
+            
 			//this set of output is used for python drawing, do not modify
 			sprintf(str, "%2.4f", data[x+y*size]);//write vals to string
 			strcat(str, " ");
@@ -80,27 +80,23 @@ void log_python(double* data, int fd)
 }
 
 
-void write_file(int fd,  double* geom, int lsize,  int dim){
+void write_file3D(int fd,  double* geom, int lsize ){
 
 
     char buffer[100];
     char* bPoint = buffer;
 
-    int x, y, z = 0;
-    x = lsize;
-    if (dim >= 2){
-        y = lsize-1;
-    }
-    if (dim >= 3){
-        z = lsize-1;
-    }
-    for(int i = 0; i < z+1; i++){
-        for( int j = 0; j< y+1; j++){
+    int x = lsize;
+    int y = lsize;
+    int z = lsize;
+
+    for(int i = 0; i < z; i++){
+        for( int j = 0; j< y; j++){
             for( int k = 0; k < x; k++){
                 
-                if( geom[lsize*lsize*i + lsize*j + k]){
-                    sprintf(bPoint, "%f\t%f\t0\t0\t0\t0\t0\t0\t0\t0\t\n", 
-                            (float)x/10, (float)y/10, (float)z/10);
+                if( geom[lsize*lsize*i + lsize*j + k] == 1){
+                    sprintf(bPoint, "%f\t%f\t%f\t0\t0\t0\t0\t0\t0\t0\t\n", 
+                            (float)k/10, (float)j/10, (float)i/10);
                     if(write(fd, bPoint, sizeof(char) * strlen(bPoint)) ==-1){
                         perror("Write to file: ");
                         exit(EXIT_FAILURE);
@@ -110,9 +106,6 @@ void write_file(int fd,  double* geom, int lsize,  int dim){
             }
         }
     }
-
-
-
 }
 
 
