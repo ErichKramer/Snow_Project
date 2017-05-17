@@ -12,6 +12,7 @@
  *  3D contour is used to find collisions and remove overlap
  * */
 
+/*
 int main(){
 
     snowflake* a = initSnowflake(0, 0, 0, -1);
@@ -42,6 +43,27 @@ int main(){
     free(tmp);
     free(tmpContour);
 }
+*/
 
+int main(){
+    int size = 250;
+    double* tmp = gen_crystal(0);
+    double* tmpContour = malloc(sizeof(double) *size*size);
+    contour2D(tmp, tmpContour, size/2, size/2);
+    
+//    int fd = open("data.txt", O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IWOTH | S_IROTH);
+
+//    write_file2D(fd, tmpContour, size);
+
+    snowflake* a = initSnowflake(0,0,0,-1);
+
+    import2DArr(a, tmpContour, size);
+
+    printLocal(a, "3dConvert.txt");
+    free(tmp);
+    free(tmpContour);
+
+
+}
 
 

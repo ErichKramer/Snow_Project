@@ -93,11 +93,12 @@ void displayExtreme(snowflake* s){
 void printLocal(snowflake* s, char* file){
 
     int fd;
-    if(fd = open(file, O_WRONLY | O_CREAT |O_TRUNC, S_IRUSR|S_IWUSR|S_IWGRP|S_IWOTH|S_IROTH) ==-1){
+    if((fd = open(file, O_WRONLY | O_CREAT |O_TRUNC, S_IRUSR|S_IWUSR|S_IWGRP|S_IWOTH|S_IROTH)) ==-1){
         perror("Open Fail");
         exit(EXIT_FAILURE);
     }
 
+    printf("fd inside printLocal: %d\n", fd);
 
     int i;
     write_file3D(fd, s->voxelSpace, size);//this is breaking
@@ -194,8 +195,8 @@ void import2DArr(snowflake* s, double* arr, int size ){
 
             if(z = arr[j+ i*size] ){
                 for(int n = 0; n < z-1; n++){
-                    s->voxelSpace[j + i*size + (centerPlane +n/2)*cubeSize ]=-1;
-                    s->voxelSpace[j + i*size + (centerPlane -n/2)*cubeSize ]=-1;
+                    s->voxelSpace[j + i*size + (centerPlane +(int)n/2)*cubeSize ]=-1;
+                    s->voxelSpace[j + i*size + (centerPlane - (int)n/2)*cubeSize ]=-1;
                 }
                 s->voxelSpace[j + i*size + (centerPlane +z/2)*cubeSize ]=1;
                 s->voxelSpace[j + i*size + (centerPlane -z/2)*cubeSize ]=1;

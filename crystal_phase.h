@@ -79,9 +79,44 @@ void log_python(double* data, int fd)
 	free(str);//fix leak
 }
 
+void write_file2D(int fd, double* geom, int lsize){
+
+    char buffer[100];
+    char* bPoint = buffer;
+
+
+    for( int i = 0; i < lsize; i++){
+        for( int j = 0; j< lsize; j++){
+            if(geom[j*lsize+i]){
+                     
+                sprintf(bPoint, "%f\t%f\t%f\t0\t0\t0\t0\t0\t0\t0\t\n", 
+                            (float)i/10, (float)j/10, geom[j*lsize+i]);
+
+                    if(write(fd, bPoint, sizeof(char) * strlen(bPoint)) ==-1){
+                        perror("Write to file: ");
+                        exit(EXIT_FAILURE);
+                    }
+
+                sprintf(bPoint, "%f\t%f\t%f\t0\t0\t0\t0\t0\t0\t0\t\n", 
+                            (float)i/10, (float)j/10, -geom[j*lsize+i]);
+
+                    if(write(fd, bPoint, sizeof(char) * strlen(bPoint)) ==-1){
+                        perror("Write to file: ");
+                        exit(EXIT_FAILURE);
+                    }
+            }
+
+        }
+
+    }
+
+}
+
 
 void write_file3D(int fd,  double* geom, int lsize ){
 
+
+    printf("fd inside write3D: %d\n", fd);
 
     char buffer[100];
     char* bPoint = buffer;
