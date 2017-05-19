@@ -11,7 +11,7 @@
 //use C constant M_PI instead since math.h is included
 
 
-int size 	   = 250;   // matrix dimension; nx and ny
+extern int size;   // matrix dimension; nx and ny
 //potentially reduce for performance speedup
 
 
@@ -45,14 +45,14 @@ const int debug    = 0;		// whether to dump phi to stdout
 /*Function to log to a file for python reading*/
 void log_python(double* data, int fd)
 {
-    printf("Logging in python format");
+    
 	char buffer[100];
 	const char* bPoint = buffer;
 
 	char* str = malloc(10 * sizeof(char));
 	
 
-	for (int y = 0; y < size*size; y++)
+	for (int y = 0; y < size; y++)
 	{
 		for (int x = 0; x < size; x++)
 		{
@@ -77,6 +77,7 @@ void log_python(double* data, int fd)
 		exit(EXIT_FAILURE);
     }
 	free(str);//fix leak
+    
 }
 
 void write_file2D(int fd, double* geom, int lsize){
@@ -85,20 +86,20 @@ void write_file2D(int fd, double* geom, int lsize){
     char* bPoint = buffer;
 
 
-    for( int i = 0; i < lsize; i++){
-        for( int j = 0; j< lsize; j++){
-            if(geom[j*lsize+i]){
+    for( int y = 0; y < lsize; y++){
+        for( int x = 0; x< lsize; x++){
+            if(geom[x + y*lsize]){
                      
-                sprintf(bPoint, "%f\t%f\t%f\t0\t0\t0\t0\t0\t0\t0\t\n", 
-                            (float)i/10, (float)j/10, geom[j*lsize+i]);
+                sprintf(bPoint, "%f\t%f\t%f\t0\t0\t0\t0\t0\t0\t0\t0\n", 
+                            (float)x/10, (float)y/10, geom[x + y*lsize]);
 
                     if(write(fd, bPoint, sizeof(char) * strlen(bPoint)) ==-1){
                         perror("Write to file: ");
                         exit(EXIT_FAILURE);
                     }
 
-                sprintf(bPoint, "%f\t%f\t%f\t0\t0\t0\t0\t0\t0\t0\t\n", 
-                            (float)i/10, (float)j/10, -geom[j*lsize+i]);
+                sprintf(bPoint, "%f\t%f\t%f\t0\t0\t0\t0\t0\t0\t0\t0\n", 
+                            (float)x/10, (float)y/10, -geom[x + y*lsize]);
 
                     if(write(fd, bPoint, sizeof(char) * strlen(bPoint)) ==-1){
                         perror("Write to file: ");
@@ -130,7 +131,7 @@ void write_file3D(int fd,  double* geom, int lsize ){
             for( int k = 0; k < x; k++){
                 
                 if( geom[lsize*lsize*i + lsize*j + k] == 1){
-                    sprintf(bPoint, "%f\t%f\t%f\t0\t0\t0\t0\t0\t0\t0\t\n", 
+                    sprintf(bPoint, "%f\t%f\t%f\t0\t0\t0\t0\t0\t0\t0\t0\n", 
                             (float)k/10, (float)j/10, (float)i/10);
                     if(write(fd, bPoint, sizeof(char) * strlen(bPoint)) ==-1){
                         perror("Write to file: ");
@@ -240,8 +241,8 @@ double* gen_crystal(int flag)//log progression for python
         }
 
         //first frame no growth
-        if (flag)
-            log_python(phi, fd);
+        
+        log_python(phi, fd);
     }
 
 
@@ -347,6 +348,12 @@ double* gen_crystal(int flag)//log progression for python
 	free(u_new);
 	free(phi_grad_angle);
 	free(height);
+
+    printf("Center of phi:, %f\n", phi[size/2 + size/2*size]);
+
+    if(phi[size/2 + size/2*size] > 1){
+        printf("Center exists?\n");
+    }
 
     return phi;
 }

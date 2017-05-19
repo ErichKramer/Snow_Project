@@ -16,6 +16,7 @@ data = np.genfromtxt("data.txt")
 
 hi = raw_input("Press any key to play animation.")
 
+
 time = 10 # s
 frames = len(data) / 10
 
@@ -42,6 +43,8 @@ else:
     #cbar.ax.set_yticklabels(['< -1', '0', '> 1'])  # vertically oriented colorbar
         
     while i < len(data):
+
+        print("Len Data[11]: ", len(data[11]))
         print str(i) + " of " + str(len(data))
         Z = np.reshape(data[i], (math.sqrt(len(data[i])), math.sqrt(len(data[i]))))
         plt.imshow(Z)

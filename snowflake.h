@@ -8,7 +8,7 @@
 #include "crystal_phase.h"
 
 
-int size;
+extern int size;
 
 typedef struct snowflake snowflake;
 
@@ -139,12 +139,12 @@ void combineGeom(snowflake* a, snowflake* b){
                 if(b->voxelSpace[i] == -1){
                     a->voxelSpace[i+vecDiff] = -1;
                 }
-                else if (a->voxelSpace[i+vecDiff] != -1){
-                    a->voxelSpace[i+vecDiff] = 1;
-                }
+//                else if (a->voxelSpace[i+vecDiff] != -1){
+//                    a->voxelSpace[i+vecDiff] = 1;
+//                }
             }
             //if b has -1 it was already written to a and this is redundant
-            if(a->voxelSpace[i+vecDiff]){
+            if(a->voxelSpace[i+vecDiff]==-1){
                 b->voxelSpace[i] = a->voxelSpace[i+vecDiff];
             }
             
