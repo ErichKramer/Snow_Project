@@ -1,7 +1,12 @@
 
 
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
 #include "snowflake.h"
+#include "crystal_phase.h"
+#include "contour.h"
 
 //extern for all files
 int size = 250;
@@ -28,7 +33,6 @@ int main(){
     
     free(tmp);
 
-    memset(tmpContour, 0, size*size*sizeof(int));
     tmp = gen_crystal(0);
     contour2D(tmp, tmpContour, size/2, size/2);
 
