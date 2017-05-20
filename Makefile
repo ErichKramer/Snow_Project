@@ -1,7 +1,8 @@
-default: crystal-plot
+default: collide
 
 collide:
-	gcc sflake_test.c -lm -o collide
+	gcc sflake_test.c contour.c crystal_phase.c snowflake.c -lm -o collide
+
 
 crystal-plot: crystal_phase.c plot.py
 	mkdir -p GIFs
