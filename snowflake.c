@@ -255,8 +255,6 @@ void write_file3D(int fd,  snowflake* s, int lsize ){
 
     double* geom = s->voxelSpace;
 
-    printf("fd inside write3D: %d\n", fd);
-
     char buffer[100];
     char* bPoint = buffer;
 
@@ -320,11 +318,8 @@ void write_file2D(int fd, double* geom, int lsize){
 
 
 
-int main(){
 
 
-    return 0;
-}
 
 
 /*

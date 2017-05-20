@@ -3,6 +3,8 @@
 
 
 
-
+/*  Function proto  */
+int contour2D(double*, double*, int, int);
+void printArray(double*);
 
 #endif

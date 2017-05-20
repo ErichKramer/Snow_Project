@@ -1,5 +1,7 @@
-#ifndef CRYSTAL_PHASE
-#define CRYSTAL_PHASE
+#ifndef CRYSTAL_PHASE_C
+#define CRYSTAL_PHASE_C
+
+#include "crystal_phase.h"
 
 #include <fcntl.h>
 #include <math.h>

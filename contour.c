@@ -1,34 +1,39 @@
 #ifndef CONTOUR_C
 #define CONTOUR_C
 
+#include "contour.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 
 //variables assigned in crystal_phase
 extern int size;
 
+
+//threshold parameter for acceptable geometry phase
 double phase_tol = .99;
-//dest is init to 0, src is the double array
-
-
 
 //init dest to 0 using helper
 int contour2D(double *src, double *dest, int x, int y){
 
 
-	if(x < 0 || y < 0 || x >= size || y >= size)//out of bounds case
-		return -1;//same case for when active if oob
+    //out of bounds case
+	if(x < 0 || y < 0 || x >= size || y >= size)
+		return -1;
 
     //dest [place] > 0? check for negative first in this case
-	if(dest[y*size +x] > 0){//if this spot is solved
-		return dest[y*size +x];//don't solve again, return it.
+    //if this spot is solved, don't solve again, return it.
+    if(dest[y*size +x] > 0){
+		return dest[y*size +x];
 	}
 
-	if(dest[y*size +x]==-1){//if active return active
+    //if active return active, (same as oob)
+	if(dest[y*size +x]==-1){
 		return -1;
 	}
 
-	if(src[y*size+x] < phase_tol){//must be here to close recursion
+    //must be here to close recursion
+	if(src[y*size+x] < phase_tol){
 		return dest[y*size +x] = 0;
 	}
 
@@ -41,6 +46,7 @@ int contour2D(double *src, double *dest, int x, int y){
 		for(int j = -1; j < 2; j++){
 
 			tmp = contour2D(src, dest, x+j, y+i);
+            //if not active or out of bounds and ...
 			if( tmp != -1 && tmp < min){
 				min = tmp;
 			}
