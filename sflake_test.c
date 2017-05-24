@@ -21,10 +21,13 @@ int size = 250;
  * */
 
 
+
+
 int main(){
 
+
     snowflake* a = initSnowflake(0, 0, 0, -1);
-    snowflake* b = initSnowflake(50, 50, 0, -1);
+    snowflake* b = initSnowflake(50, 0, 0, -1);
 
     double* tmp = gen_crystal(0);
     double* tmpContour = malloc(sizeof(double) * size*size);

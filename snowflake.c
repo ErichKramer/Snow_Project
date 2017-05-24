@@ -70,10 +70,6 @@ void setEllipses(snowflake* s, int x, int y, int z){
 }
 
 
-
-
-
-
 void combineGeom(snowflake* a, snowflake* b){
 
 /*  Put it into a Giant 3d array
@@ -81,8 +77,14 @@ void combineGeom(snowflake* a, snowflake* b){
  *  remove points > 1
  *
  * */
-    int sizeThree   = 3*size; //prevent extraneous comparison calcs.
-    int sizeTwo     = 2*size;
+    int fd;
+    if ((fd = open("removed.txt", O_WRONLY | O_CREAT |O_TRUNC, S_IRUSR|S_IWUSR|S_IWGRP|S_IWOTH|S_IROTH)) ==-1){
+        perror("Open fail");
+        exit(EXIT_FAILURE);
+    }
+    char buffer[100];
+    char* bPoint = buffer;
+
     int sizeCube    = size*size*size;
 
     //9 times for a 3x3x3 cube
@@ -92,8 +94,9 @@ void combineGeom(snowflake* a, snowflake* b){
     int zDiff = b->originZ - a->originZ;
     
     int vecDiff = xDiff + yDiff*size + zDiff*size*size;
+    int currLoc=0;
 
-
+    /*
     for(int i = 0; i < sizeCube; i++){
         if(vecDiff+i > 0 && vecDiff+i < sizeCube){
 
@@ -105,6 +108,38 @@ void combineGeom(snowflake* a, snowflake* b){
                 b->voxelSpace[i] = a->voxelSpace[i+vecDiff];
             }
             
+        }
+    }
+    */
+
+    //slow as shit
+    for(int z = 0; z<size; z++){
+        for(int y = 0; y<size; y++){
+            for(int x = 0; x<size; x++){
+                //this finds the correct number of conflictes to match above
+                currLoc = x + y*size + z*size*size;
+
+                if(vecDiff+currLoc > 0 && vecDiff+currLoc < sizeCube){
+                        
+                    if((b->voxelSpace[currLoc] == -1 && a->voxelSpace[currLoc+vecDiff] == 1)
+                            || (a->voxelSpace[currLoc+vecDiff] == -1 && b->voxelSpace[currLoc] == 1)){
+                        a->voxelSpace[currLoc+vecDiff] = -1;
+                        b->voxelSpace[currLoc] = -1;
+
+                        sprintf(bPoint, "%f\t%f\t%f\t0\t0\t0\t0\t0\t0\t0\t0\n",
+                                (float)x/10, (float)y/10, (float)z/10 );
+
+                        if(write(fd, bPoint, sizeof(char) * strlen(bPoint)) ==-1){
+                            perror("Write to file: ");
+                            exit(EXIT_FAILURE);
+                        }
+                        
+
+
+
+                    }
+                }   
+            }
         }
     }
 
@@ -121,7 +156,6 @@ int boxCollide(snowflake* a, snowflake* b){
         if((a->yMax- b->yMin)*(a->yMin - b->yMax) < 0 ){
             if( (a->zMax- b->zMin)*(a->zMin - b->zMax) < 0 ){
                 combineGeom(a, b);
-                
                 return 1;
             }
         }
@@ -240,7 +274,7 @@ void printLocal(snowflake* s, char* file){
     printf("fd inside printLocal: %d\n", fd);
 
     int i;
-    write_file3D(fd, s, size);//this is breaking
+    //write_file3D(fd, s, size);//this is breaking
 
     for( i = 0; i < s->neighSize; i++){
         write_file3D(fd, s->neighborCollisions[i], size);
@@ -262,14 +296,17 @@ void write_file3D(int fd,  snowflake* s, int lsize ){
     int y = lsize;
     int z = lsize;
 
+    printf("Origins: %f, %f, %f\n", s->originX, s->originY, s->originZ );
+
+
     for(int i = 0; i < z; i++){
         for( int j = 0; j< y; j++){
             for( int k = 0; k < x; k++){
 
                 if( geom[lsize*lsize*i + lsize*j + k] == 1){
                     sprintf(bPoint, "%f\t%f\t%f\t0\t0\t0\t0\t0\t0\t0\t0\n",
-                            (float)k/10 + s->originX, (float)j/10 + s->originY,
-                            (float)i/10+s->originZ );
+                            ((float)k + s->originX)/10, ((float)j + s->originY)/10,
+                            ((float)i + s->originZ)/10  );
 
                     if(write(fd, bPoint, sizeof(char) * strlen(bPoint)) ==-1){
                         perror("Write to file: ");
