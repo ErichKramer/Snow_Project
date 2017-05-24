@@ -1,7 +1,7 @@
 default: collide
 
-collide: crystal_phase.c sflake_test.c contour.c snowflake.c 
-	gcc sflake_test.c contour.c crystal_phase.c snowflake.c -lm -o collide
+collide: crystal_phase.c vertex.c sflake_test.c contour.c snowflake.c vertex.h
+	gcc sflake_test.c vertex.c contour.c crystal_phase.c snowflake.c -lm -o collide
 
 
 crystal-plot: crystal_phase.c plot.py 

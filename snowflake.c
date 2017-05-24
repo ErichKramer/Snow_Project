@@ -101,7 +101,6 @@ int boxCollide(snowflake* a, snowflake* b){
     }
     return 0;
 
-    //include methods for 
 }
 
 
@@ -124,9 +123,6 @@ void import2DArr(snowflake* s, double* arr, int size ){
             
                 s->vertexSoup[count++] = loadVal( j, i, z);
                 s->vertexSoup[count++] = loadVal( j, i,-z);
-
-
-
 
                 if( i < s->xMin) s->xMin = i;
                 if( i > s->xMax) s->xMax = i;
@@ -187,8 +183,6 @@ void printLocal(snowflake* s, char* file){
         exit(EXIT_FAILURE);
     }
 
-    printf("fd inside printLocal: %d\n", fd);
-
     int i;
     write_file3D(fd, s, size);//this is breaking
 
@@ -217,10 +211,9 @@ void write_file3D(int fd,  snowflake* s, int lsize ){
 
 
     for(int i = 0; i < s->vertCount; i++){
-
         sprintf(bPoint, "%f\t%f\t%f\t0\t0\t0\t0\t0\t0\t0\t0\n",
-            (float)verts[i]->x/10, (float)verts[i]->y/10,
-            (float)verts[i]->z/10);
+            verts[i]->x/10, verts[i]->y/10,
+            verts[i]->z/10);
 
         if(write(fd, bPoint, sizeof(char) * strlen(bPoint)) ==-1){
             perror("Write to file: ");

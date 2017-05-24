@@ -29,27 +29,29 @@ int main(){
 
 
     snowflake* a = initSnowflake(0, 0, 0, -1);
-    snowflake* b = initSnowflake(50, 0, 0, -1);
+//    snowflake* b = initSnowflake(50, 0, 0, -1);
 
     double* tmp = gen_crystal(0);
     double* tmpContour = malloc(sizeof(double) * size*size);
     contour2D(tmp, tmpContour, size/2, size/2);
     import2DArr(a, tmpContour, size);
-    
-    free(tmp);
-
-    tmp = gen_crystal(0);
-    contour2D(tmp, tmpContour, size/2, size/2);
-
-    import2DArr(b, tmpContour, size);
 
 
+//    free(tmp);
 
+    //tmp = gen_crystal(0);
+    //contour2D(tmp, tmpContour, size/2, size/2);
+
+    //import2DArr(b, tmpContour, size);
+
+    printLocal(a, "collision.txt");
+
+/*
     if(boxCollide(a, b)){
         printf("Collision\nPrinting to File...\n");
         printLocal(a, "collision.txt");
     }
-
+*/
     free(tmp);
     free(tmpContour);
 }
