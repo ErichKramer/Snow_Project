@@ -9,6 +9,8 @@
 #include "contour.h"
 
 //extern for all files
+
+//this is a dependency for everything
 int size = 250;
 
 

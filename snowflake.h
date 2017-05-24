@@ -1,6 +1,7 @@
 #ifndef SNOWFLAKE_H
 #define SNOWFLAKE_H
 
+#include "vertex.h"
 
 extern int size;
 
@@ -8,8 +9,8 @@ typedef struct snowflake snowflake;
 struct snowflake{
     int idx;
 
-    double* voxelSpace; //3d array of voxels describing shell
-    int voxCubeLen;     //dimensions of voxelSpace x*y*z
+    vertex** vertexSoup; //3d array of voxels describing shell
+    int vertCount;     //dimensions of voxelSpace x*y*z
 
     double originX, originY, originZ;
 
@@ -21,6 +22,7 @@ struct snowflake{
     //x^2/a^2 + y^2/b^2 + z^2/c^2 = 1
     float eX, eY, eZ;
 
+    //ellipsoid coefficents = 1 / {[(Max - Min)/2]^2} 
 
     snowflake** neighborCollisions;//set of nearby structs
     int neighSize;//num of elements in neighbor
