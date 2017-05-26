@@ -11,7 +11,7 @@ struct vertex{
 vertex* loadVal( int, int, int);
 
 void scaleV(vertex*,  int );
-void rotateV(vertex*, int );
+void rotateV(vertex*, double, int , int , int );
 void transV(vertex*,  int , int , int );
 
 

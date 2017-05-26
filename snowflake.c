@@ -157,6 +157,43 @@ void updateMaxMin(snowflake* s){
 //this needs to be updated
 }
 
+/*************************************************
+ *
+ *TRANSFORM MATRIX FUNCTIONS
+ *
+ ************************************************/
+
+
+void scale(snowflake* s, int scl){
+    vertex** v = s->vertexSoup;
+
+    for(int i = 0; i < s->vertCount; i++){
+        scaleV(v[i], scl);
+    }
+    return;
+}
+
+void rotate(snowflake* s, double angle, int rX, int rY, int rZ){
+    vertex** v = s->vertexSoup;
+
+    for(int i = 0; i < s->vertCount; i++){
+        rotateV(v[i], angle, rX, rY, rZ);
+    }
+    return;
+}
+
+void translate(snowflake* s, int x, int y, int z){
+    vertex** v = s->vertexSoup;
+
+    for(int i = 0; i < s->vertCount; i++){
+        transV(v[i], x, y, z);
+    }
+
+    return; //should this be just changing the origin?
+}
+
+
+
 
 /*************************************************
  *

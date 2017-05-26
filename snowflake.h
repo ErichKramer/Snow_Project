@@ -41,10 +41,19 @@ int boxCollide(snowflake*, snowflake*);
 void import2DArr(snowflake*, double*, int);
 void updateMaxMin(snowflake*);
 
+/*Transformations*/
+void scale(snowflake*, int);
+void rotate(snowflake*, double, int, int, int);
+void translate(snowflake*, int, int, int);
+
+
+
 /*  Logging functions(depend on snowflake)   */
 void displayExtreme(snowflake*);
 void printLocal(snowflake*, char*);
 void write_file3D(int, snowflake*, int);
+
+/* Extraneous Logging*/
 void write_file2D(int, double*, int);
 
 
