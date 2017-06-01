@@ -44,7 +44,9 @@ int main(){
 
     //import2DArr(b, tmpContour, size);
 
-    rotate(a, 90, 1, 0, 0);
+    rotate(a, 90, 1, 1, 1);
+ //   scale(a, 5);
+
 
     printLocal(a, "collision.txt");
 

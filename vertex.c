@@ -8,18 +8,28 @@
 
 extern int size;
 
-vertex* loadVal( int x, int y, int z){
+vertex* loadVal( double x, double y, double z){
     
     vertex* v = malloc(sizeof(vertex));
 
-    v->x = x-size/2.0;
-    v->y = y-size/2.0;
+    v->x = x;
+    v->y = y;
     v->z = z;   
     v->w = 1;
     return v;
 }
 
-void scaleV(vertex* v, int scale){
+void normalize(vertex* v){
+
+    double magnitude = sqrt( pow(v->x, 2)  + pow(v->y, 2) + pow(v->z, 2));
+    printf("Magnitude:%f\n", magnitude);
+    v->x = v->x / magnitude;
+    v->y = v->y / magnitude;
+    v->z = v->z / magnitude;
+
+}
+
+void scaleV(vertex* v, double scale){
     
     v->x *= scale;
     v->y *= scale;
@@ -28,7 +38,7 @@ void scaleV(vertex* v, int scale){
     return;
 }
 
-void rotateV(vertex* v, double angle, int rX, int rY, int rZ){
+void rotateV(vertex* v, double angle, double rX, double rY, double rZ){
 
     angle = angle * M_PI/180;
 
@@ -41,7 +51,7 @@ void rotateV(vertex* v, double angle, int rX, int rY, int rZ){
     double z = v->z;
 
 
-    int Mat[] = {
+    double Mat[] = {
         rX*rX*t + c, rY*rX*t + rZ*s, rZ*rX*t - rY*s, 0,
         rX*rY*t - rY*s, rY*rY*t + c, rZ*rY*t + rX*s, 0,
         rX*rZ*t + rY*s, rY*rZ*t - rX*s, rZ*rZ*t + c, 0, 
@@ -57,7 +67,9 @@ void rotateV(vertex* v, double angle, int rX, int rY, int rZ){
     return;
 }
 
-void transV(vertex* v, int tX, int tY, int tZ){
+void transV(vertex* v, double tX, double tY, double tZ){
+ 
+
     return;
 }
 

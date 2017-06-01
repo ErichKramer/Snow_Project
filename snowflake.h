@@ -42,9 +42,9 @@ void import2DArr(snowflake*, double*, int);
 void updateMaxMin(snowflake*);
 
 /*Transformations*/
-void scale(snowflake*, int);
-void rotate(snowflake*, double, int, int, int);
-void translate(snowflake*, int, int, int);
+void scale(snowflake*, double);
+void rotate(snowflake*, double, double, double, double);
+void translate(snowflake*, double, double, double);
 
 
 

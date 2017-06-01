@@ -8,11 +8,13 @@ struct vertex{
 
 };
 
-vertex* loadVal( int, int, int);
+vertex* loadVal( double, double, double);
 
-void scaleV(vertex*,  int );
-void rotateV(vertex*, double, int , int , int );
-void transV(vertex*,  int , int , int );
+
+void normalize(vertex*);
+void scaleV(vertex*,  double );
+void rotateV(vertex*, double, double , double , double );
+void transV(vertex*,  double , double , double );
 
 
 #endif

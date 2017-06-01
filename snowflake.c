@@ -28,7 +28,7 @@ snowflake* initSnowflake(int x, int y, int z, int idx){
     s->originX = x;
     s->originY = y;
     s->originZ = z;
-    s->idx = idx;
+    s->idx = idx;//self representation 
 
     s->vertCount = 0;
     s->neighSize = 0;
@@ -109,7 +109,8 @@ int boxCollide(snowflake* a, snowflake* b){
 
 //construct voxel shell from x,y cooords
 void import2DArr(snowflake* s, double* arr, int size ){
-
+    
+//double* arr should not have any -1 values
 
     //max of 2 at each x,y point
     s->vertexSoup = malloc(sizeof(vertex*) * 2*size*size);
@@ -121,8 +122,10 @@ void import2DArr(snowflake* s, double* arr, int size ){
 
             if(z = arr[j+ i*size] ){//there is a point in the contour bit
             
-                s->vertexSoup[count++] = loadVal( j, i, z);
-                s->vertexSoup[count++] = loadVal( j, i,-z);
+                //subtract size/2.0 to shift all values so that they range from [-size/2, size/2]
+                //rather than [0, size] 
+                s->vertexSoup[count++] = loadVal( j-size/2.0, i-size/2.0, z);
+                s->vertexSoup[count++] = loadVal( j-size/2.0, i-size/2.0,-z);
 
                 if( i < s->xMin) s->xMin = i;
                 if( i > s->xMax) s->xMax = i;
@@ -164,7 +167,7 @@ void updateMaxMin(snowflake* s){
  ************************************************/
 
 
-void scale(snowflake* s, int scl){
+void scale(snowflake* s, double scl){
     vertex** v = s->vertexSoup;
 
     for(int i = 0; i < s->vertCount; i++){
@@ -173,16 +176,56 @@ void scale(snowflake* s, int scl){
     return;
 }
 
-void rotate(snowflake* s, double angle, int rX, int rY, int rZ){
-    vertex** v = s->vertexSoup;
 
-    for(int i = 0; i < s->vertCount; i++){
-        rotateV(v[i], angle, rX, rY, rZ);
+
+//rotate the vertex around the center of the obj. using magic
+//
+void rotate(snowflake* sflake, double angle, double rX, double rY, double rZ){
+    vertex** v = sflake->vertexSoup;
+
+    vertex* rot = loadVal(rX, rY, rZ);   
+    normalize(rot);//vertex operation from vertex.h, it's vectors all the way down
+
+    printf("rX %f rY %f rZ %f \n", rX, rY, rZ);
+
+
+    rX = rot->x;
+    rY = rot->y;
+    rZ = rot->z;
+    printf("rotX = %f, rotY %f, rotZ %f\n",rot->x ,rot->y ,rot->z );
+
+    double xTmp,yTmp,zTmp = 0; // temp values for conservation of values
+    angle = angle * M_PI/180;
+    double s = sin(angle);
+    double c = cos(angle);
+    double t = 1-c;
+
+    double Mat[] = {
+        rX*rX*t + c, rY*rX*t + rZ*s, rZ*rX*t - rY*s, 0,
+        rX*rY*t - rY*s, rY*rY*t + c, rZ*rY*t + rX*s, 0,
+        rX*rZ*t + rY*s, rY*rZ*t - rX*s, rZ*rZ*t + c, 0,
+        0           , 0             , 0             ,1
+    };
+    
+
+    for(int i = 0; i < sflake->vertCount; i++){
+        xTmp = v[i]->x;
+        yTmp = v[i]->y;
+        zTmp = v[i]->z;
+
+        v[i]->x = xTmp*Mat[0] + yTmp*Mat[1] + zTmp*Mat[2];
+        v[i]->y = xTmp*Mat[4] + yTmp*Mat[5] + zTmp*Mat[6];
+        v[i]->z = xTmp*Mat[8] + yTmp*Mat[9] + zTmp*Mat[10];
+
     }
     return;
 }
 
-void translate(snowflake* s, int x, int y, int z){
+
+
+
+
+void translate(snowflake* s, double x, double y, double z){
     vertex** v = s->vertexSoup;
 
     for(int i = 0; i < s->vertCount; i++){
@@ -249,8 +292,8 @@ void write_file3D(int fd,  snowflake* s, int lsize ){
 
     for(int i = 0; i < s->vertCount; i++){
         sprintf(bPoint, "%f\t%f\t%f\t0\t0\t0\t0\t0\t0\t0\t0\n",
-            verts[i]->x/10, verts[i]->y/10,
-            verts[i]->z/10);
+            verts[i]->x/10+5, verts[i]->y/10+5,
+            verts[i]->z/10+5);
 
         if(write(fd, bPoint, sizeof(char) * strlen(bPoint)) ==-1){
             perror("Write to file: ");
