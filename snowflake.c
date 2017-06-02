@@ -47,7 +47,7 @@ snowflake* initSnowflake(int x, int y, int z, int idx){
 
 
 
-void setOrigin(snowflake* s, int x, int y, int z){
+void setOrigin(snowflake* s, double x, double y, double z){
     s->originX = x;
     s->originY = y;
     s->originZ = z;
@@ -186,13 +186,13 @@ void rotate(snowflake* sflake, double angle, double rX, double rY, double rZ){
     vertex* rot = loadVal(rX, rY, rZ);   
     normalize(rot);//vertex operation from vertex.h, it's vectors all the way down
 
-    printf("rX %f rY %f rZ %f \n", rX, rY, rZ);
+//atoi for floats    printf("rX %f rY %f rZ %f \n", rX, rY, rZ);
 
 
     rX = rot->x;
     rY = rot->y;
     rZ = rot->z;
-    printf("rotX = %f, rotY %f, rotZ %f\n",rot->x ,rot->y ,rot->z );
+//    printf("rotX = %f, rotY %f, rotZ %f\n",rot->x ,rot->y ,rot->z );
 
     double xTmp,yTmp,zTmp = 0; // temp values for conservation of values
     angle = angle * M_PI/180;
@@ -258,13 +258,13 @@ void displayExtreme(snowflake* s){
 void printLocal(snowflake* s, char* file){
 
     int fd;
-    if((fd = open(file, O_WRONLY | O_CREAT |O_TRUNC, S_IRUSR|S_IWUSR|S_IWGRP|S_IWOTH|S_IROTH)) ==-1){
+    if((fd = open(file, O_WRONLY | O_CREAT |O_APPEND, S_IRUSR|S_IWUSR|S_IWGRP|S_IWOTH|S_IROTH)) ==-1){
         perror("Open Fail");
         exit(EXIT_FAILURE);
     }
 
     int i;
-    write_file3D(fd, s, size);//this is breaking
+    write_file3D(fd, s, size);
 
     for( i = 0; i < s->neighSize; i++){
         write_file3D(fd, s->neighborCollisions[i], size);
@@ -289,11 +289,12 @@ void write_file3D(int fd,  snowflake* s, int lsize ){
 
     printf("Origins: %f, %f, %f\n", s->originX, s->originY, s->originZ );
 
+    int div = 500;
 
     for(int i = 0; i < s->vertCount; i++){
         sprintf(bPoint, "%f\t%f\t%f\t0\t0\t0\t0\t0\t0\t0\t0\n",
-            verts[i]->x/10+5, verts[i]->y/10+5,
-            verts[i]->z/10+5);
+            (verts[i]->x+s->originX)/div, (verts[i]->y + s->originY)/div,
+            (verts[i]->z + s->originZ)/div);
 
         if(write(fd, bPoint, sizeof(char) * strlen(bPoint)) ==-1){
             perror("Write to file: ");

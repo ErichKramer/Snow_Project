@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 #include "snowflake.h"
 #include "crystal_phase.h"
@@ -38,18 +39,28 @@ int main(){
 
 
 //    free(tmp);
-
-    //tmp = gen_crystal(0);
-    //contour2D(tmp, tmpContour, size/2, size/2);
-
-    //import2DArr(b, tmpContour, size);
-
-    rotate(a, 90, 1, 1, 1);
+//    rotate(a, 90, 1, 1, 1);
  //   scale(a, 5);
 
+    const char delimit[2] = "\t";
+    double x,y,z;
+    
+    char buffer[256];
+    FILE* fp = fopen("out.0.txt", "r");
+    srand(time(NULL));
 
-    printLocal(a, "collision.txt");
+    for( int i = 0; i < 50; i++){
+        fgets(buffer, 256, (FILE*)fp);
 
+        char* token = strtok(buffer, delimit);
+        x = atof(token);
+        y = atof(strtok(NULL, delimit));
+        z = atof(strtok(NULL, delimit));
+
+        setOrigin(a, x, y, z);
+        rotate(a, rand()%180, rand()%10, rand()%10, rand()%10);
+        printLocal(a, "collision.txt");
+    }
 /*
     if(boxCollide(a, b)){
         printf("Collision\nPrinting to File...\n");

@@ -34,7 +34,7 @@ snowflake* initSnowflake(int, int, int, int);
 
 
 /*  Snowflake Operations  */
-void setOrigin(snowflake*, int, int, int);
+void setOrigin(snowflake*, double, double, double);
 void setEllipses(snowflake*, int, int, int);
 void combineGeom(snowflake*, snowflake*);
 int boxCollide(snowflake*, snowflake*);
