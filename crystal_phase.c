@@ -363,7 +363,7 @@ double* gen_crystal(int flag)//log progression for python
 	free(phi_grad_angle);
 	free(height);
 
-    printf("Center of phi:, %f\n", phi[size/2 + size/2*size]);
+//    printf("Center of phi:, %f\n", phi[size/2 + size/2*size]);
 
     if(phi[size/2 + size/2*size] > 1){
         printf("Center exists?\n");
