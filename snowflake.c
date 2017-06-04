@@ -47,12 +47,15 @@ snowflake* initSnowflake(int x, int y, int z, int idx){
 /*SNOWFLAKE OPERATIONS*/
 
 
-void setOrigin(snowflake* s, int x, int y, int z){
+void setOrigin(snowflake* s, double x, double y, double z){
     s->originX = x;
     s->originY = y;
     s->originZ = z;
 }
 
+
+
+/* DEPRECATED CURRENTLY. SEE COLLIDE FUNCTION
 //set the bounds
 void setEllipses(snowflake* s, int x, int y, int z){
 
@@ -67,9 +70,11 @@ void setEllipses(snowflake* s, int x, int y, int z){
     s->zMin = s->originZ - z;
     s->zMax = s->originZ + z;
 }
-
+*/
 
 void combineGeom(snowflake* a, snowflake* b){
+
+    assert(a->voxCubeLen == b->voxCubeLen);
 
     int fd;
     if ((fd = open("removed.txt", O_WRONLY | O_CREAT |O_TRUNC, S_IRUSR|S_IWUSR|S_IWGRP|S_IWOTH|S_IROTH)) ==-1){
@@ -79,7 +84,8 @@ void combineGeom(snowflake* a, snowflake* b){
     char buffer[100];
     char* bPoint = buffer;
 
-    int sizeCube    = size*size*size;
+    
+    int sizeCube    = a->voxCubeLen;
 
     //9 times for a 3x3x3 cube
 
@@ -141,7 +147,7 @@ int boxCollide(snowflake* a, snowflake* b){
     if( (a->xMax- b->xMin)*(a->xMin - b->xMax) < 0   ){
         if((a->yMax- b->yMin)*(a->yMin - b->yMax) < 0 ){
             if( (a->zMax- b->zMin)*(a->zMin - b->zMax) < 0 ){
- //               combineGeom(a, b);
+                combineGeom(a, b);
              
                 a->neighborCollisions[a->neighSize++] = b;
                 b->neighborCollisions[b->neighSize++] = a;
@@ -163,7 +169,8 @@ int boxCollide(snowflake* a, snowflake* b){
 void import2DArr(snowflake* s, double* arr, int size ){
 
 
-    s->voxelSpace = malloc(sizeof(double) * size*size*size);
+    s->voxCubeLen = size*size*size;
+    s->voxelSpace = malloc(sizeof(double) * s->voxCubeLen);
     int z=0;
     int idx;
     int cubeSize = size*size; //prevent excessive mul, used for z
@@ -202,7 +209,6 @@ void import2DArr(snowflake* s, double* arr, int size ){
     s->yMax += s->originY;
     s->zMax += s->originZ;
     
-    s->voxCubeLen = size;
 }
 
 void updateMaxMin(snowflake* s){
@@ -241,24 +247,28 @@ void updateMaxMin(snowflake* s){
  *
  ************************************************/
 void rotate(snowflake* sflake, double angle, double rX, double rY, double rZ){
-    vertex** v = sflake->vertexSoup;
-
-    vertex* rot = loadVal(rX, rY, rZ);   
-    normalize(rot);//vertex operation from vertex.h, it's vectors all the way down
-
-//atoi for floats    printf("rX %f rY %f rZ %f \n", rX, rY, rZ);
+    double* voxSpace = sflake->voxelSpace;
 
 
-    rX = rot->x;
-    rY = rot->y;
-    rZ = rot->z;
-//    printf("rotX = %f, rotY %f, rotZ %f\n",rot->x ,rot->y ,rot->z );
+//    printf("Before normaling: rX %f, rY %f, rZ %f\n", rX, rY, rZ);
 
-    double xTmp,yTmp,zTmp = 0; // temp values for conservation of values
+    double magnitude = 0.;
+
+    magnitude = sqrt(rX * rX + rY * rY + rZ * rZ);
+    rX /= magnitude;
+    rY /= magnitude;
+    rZ /= magnitude;
+   
+    printf("After Normasl: rX %f, rY %f, rZ %f, mag %f\n", rX, rY, rZ, magnitude);
+    
+
+    //double xTmp,yTmp,zTmp = 0; // temp values for conservation of values
     angle = angle * M_PI/180;
     double s = sin(angle);
     double c = cos(angle);
     double t = 1-c;
+
+//    printf("sin %f,cos  %f,tan %f\n", s, c, t);
 
     double Mat[] = {
         rX*rX*t + c, rY*rX*t + rZ*s, rZ*rX*t - rY*s, 0,
@@ -266,22 +276,58 @@ void rotate(snowflake* sflake, double angle, double rX, double rY, double rZ){
         rX*rZ*t + rY*s, rY*rZ*t - rX*s, rZ*rZ*t + c, 0,
         0           , 0             , 0             ,1
     };
+    for(int i = 0; i < sizeof(Mat) / sizeof(Mat[0]); i++){
+        printf("Value i = %d , %f\n", i, Mat[i]);
+    }   
+
+
+    double* newCube = malloc(sizeof(double) * sflake->voxCubeLen);
+    int xTmp, yTmp, zTmp;
+
+    int sizeSqr = size*size;//prevent extraneous mul
+
+    int offset = size*size*size /2 + size*size/2 + size/2;
+
+    for(int k = -size/2; k<size/2; k++){
+        for(int j = -size/2; j<size/2; j++){
+            for(int i = -size/2; i<size/2; i++){
+
+
+               // printf("X: %d Y: %d Z: %d\n", i, j, k);
+               // printf("Size3 = %d, current = %d\n", size*size*size,
+               //         i + j*size + k*sizeSqr + offset);
+
+                if(voxSpace[i + j*size + k*sizeSqr + offset]){
+                    //cast to int and add .5 to round up or down 
+                    xTmp = (int)(i*Mat[0] + j*Mat[1] + k*Mat[2] + .5);
+                    yTmp = (int)(i*Mat[4] + j*Mat[5] + k*Mat[6] + .5);
+                    zTmp = (int)(i*Mat[8] + j*Mat[9] + k*Mat[10]+ .5);
+                    
+//                    printf("New vals: %d, %d, %d\n", xTmp, yTmp, zTmp);
+                    
+     
+                    newCube[xTmp + yTmp*size + zTmp*sizeSqr + offset] = 
+                        voxSpace[i + j*size + k*sizeSqr + offset];
     
-
-    for(int i = 0; i < sflake->vertCount; i++){
-        xTmp = v[i]->x;
-        yTmp = v[i]->y;
-        zTmp = v[i]->z;
-
-        v[i]->x = xTmp*Mat[0] + yTmp*Mat[1] + zTmp*Mat[2];
-        v[i]->y = xTmp*Mat[4] + yTmp*Mat[5] + zTmp*Mat[6];
-        v[i]->z = xTmp*Mat[8] + yTmp*Mat[9] + zTmp*Mat[10];
-
+                }
+            }
+        }
     }
-    return;
-}
 
-void scale(){
+    free(sflake->voxelSpace);
+    sflake->voxelSpace = newCube;
+
+}
+   
+
+void scale(snowflake* s, double sX, double sY, double sZ){
+
+    if(sX)
+        s->sX *= sX;
+    if(sY)
+        s->sY *= sY;
+    if(sZ)
+        s->sZ *= sZ;
 
 }
 
@@ -314,13 +360,16 @@ void displayExtreme(snowflake* s){
 
 void printLocal(snowflake* s, char* file){
 
+
+//    printf("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
+
     int fd;
-    if((fd = open(file, O_WRONLY | O_CREAT |O_TRUNC, S_IRUSR|S_IWUSR|S_IWGRP|S_IWOTH|S_IROTH)) ==-1){
+    if((fd = open(file, O_WRONLY | O_CREAT |O_APPEND, S_IRUSR|S_IWUSR|S_IWGRP|S_IWOTH|S_IROTH)) ==-1){
         perror("Open Fail");
         exit(EXIT_FAILURE);
     }
 
-    printf("fd inside printLocal: %d\n", fd);
+//    printf("fd inside printLocal: %d\n", fd);
 
     int i;
     write_file3D(fd, s, size);//this is breaking
