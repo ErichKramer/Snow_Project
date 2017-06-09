@@ -1,5 +1,6 @@
 
-
+#include <fcntl.h>
+#include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -21,11 +22,19 @@ int size = 250;
  *  3D contour is used to find collisions and remove overlap
  * */
 
+void trimHeader(FILE* fp){
+//if file has Header, trim it or move file pointer. Otherwise do noting
+
+}
+
+
+
 //Construct an array of point structs of all the described
 //in the point cloud file
 
-void getPointArr(point* pS, char* file){
+int getPointArr(point** pS, char* file){
     
+
 /*current simulation has 61814 points.                              
 * Do not attempt to dynamically resize. This is incredibly expensive
 * Instead use a script to determine wc and pass as a param          
@@ -33,24 +42,33 @@ void getPointArr(point* pS, char* file){
 */
     FILE* fp = fopen(file, "r");
     int idx = 0;
-    const char delmit[2] = "\t";
-    int scale = 200;//temporary, change in future
+    const char delimit[2] = "\t";
+    int scale = 100;//multiply by 100, cast to int.
 
-    int pointCount = 65536;
-    pS = malloc(sizeof(point) * pointCount);
+    //trimHeader(fp);
 
-    while(fgets(buffer, 256, (FILE*)fp)){
+    char buffer[256];
+    
 
-        
+    while(fgets(buffer, 256, (FILE*)fp)){  
+ 
+        pS[idx] = malloc(sizeof(point));
+
         char* token = strtok(buffer, delimit);
-        pS[idx].x = atof(token) *scale;
-        pS[idx].y = atof(strtok(NULL, delimit)) *scale;
-        ps[idx].z = atof(strtok(NULL, delimit)) *scale;
-
-
+        pS[idx]->x   = atof(token) *scale;
+        pS[idx]->y   = atof(strtok(NULL, delimit)) *scale;
+        pS[idx]->z   = atof(strtok(NULL, delimit)) *scale;
+        pS[idx]->sxx = atof(strtok(NULL, delimit)) ;
+        pS[idx]->syy = atof(strtok(NULL, delimit)) ;
+        pS[idx]->szz = atof(strtok(NULL, delimit)) ;
+        pS[idx]->sxy = atof(strtok(NULL, delimit)) ;
+        pS[idx]->sxz = atof(strtok(NULL, delimit)) ;
+        pS[idx]->syz = atof(strtok(NULL, delimit)) ;
+        pS[idx]->mat = atof(strtok(NULL, delimit)) ;
+        pS[idx]->mass= atof(strtok(NULL, delimit)) ;
         idx++;
     }
-
+    return idx;
 }
 
 
@@ -58,9 +76,15 @@ int main(){
 
 
     snowflake* a = initSnowflake(0, 0, 0, -1);
-
-//    FILE* fp = fopen("out.0.txt", "r");
     srand(time(NULL));
+
+
+    int fd;
+    if((fd = open("zeroFileSoup.txt", O_WRONLY | O_CREAT |O_APPEND, S_IRUSR|S_IWUSR|S_IWGRP|S_IWOTH|S_IROTH)) ==-1){
+        perror("Open Fail");
+        exit(EXIT_FAILURE);
+    }
+
 
 
     double* tmp = gen_crystal(0);
@@ -75,59 +99,29 @@ int main(){
     double x,y,z;
 
 
-    int scale = 200;
     //how much to spread snowflakes for good looking bank
 
 
+    int pointCount = 65536;
+    point** pointSoup;//array of pointers to structs
+    pointSoup = malloc(sizeof(point*) * pointCount);
+    int cnt = getPointArr(pointSoup, "out.0.txt");
+    printf("Finished reading file\n");
 
-    /*
-    for( int i = 0; i < 10; i++){
-
-        printf("in loop\n");
-        fgets(buffer, 256, (FILE*)fp);
-
-        char* token = strtok(buffer, delimit);
-        x = atof(token) *scale;
-        y = atof(strtok(NULL, delimit)) *scale;
-        z = atof(strtok(NULL, delimit)) *scale;
-
-       }
-
-
-     printf("before set origin\n");
-        setOrigin(a, x, y, z);
-    
-        rotate(a, rand()%180, rand()%10, rand()%10, rand()%10 );
-        printf("After rotation\n");
-
-        printLocal(a, "collision.txt");
-
-        printf("after printLocal \n");
-
+    for(int i = 0; i < cnt; i++){
         free(a->voxelSpace);
         import2DArr(a, tmpContour, size);
-
-
-
-
-
-   if(boxCollide(a, b)){
-        printf("Collision\nPrinting to File...\n");
-        printLocal(a, "collision.txt");
-
+        if(i%50 == 0){
+            printf("Now at idx:%d/%d \n", i, cnt);
+        }
+        setOrigin(a, pointSoup[i]->x, pointSoup[i]->y, pointSoup[i]->z);
+        //rotate(a, rand()%180, rand()%10, rand()%10, rand()%10 );
+        printLocal(a, fd);
     }
 
 
 
-
-*/
-
     
-//    rotate(a, 90, 1, 0, 0);
-//    rotate(a, 90, -1, 0, 0);
-//    printLocal(a, "collision.txt");
-
-
 
     free(tmp);
     free(tmpContour);

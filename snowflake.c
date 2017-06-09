@@ -259,7 +259,7 @@ void rotate(snowflake* sflake, double angle, double rX, double rY, double rZ){
     rY /= magnitude;
     rZ /= magnitude;
    
-    printf("After Normasl: rX %f, rY %f, rZ %f, mag %f\n", rX, rY, rZ, magnitude);
+//    printf("After Normasl: rX %f, rY %f, rZ %f, mag %f\n", rX, rY, rZ, magnitude);
     
 
     //double xTmp,yTmp,zTmp = 0; // temp values for conservation of values
@@ -276,9 +276,9 @@ void rotate(snowflake* sflake, double angle, double rX, double rY, double rZ){
         rX*rZ*t + rY*s, rY*rZ*t - rX*s, rZ*rZ*t + c, 0,
         0           , 0             , 0             ,1
     };
-    for(int i = 0; i < sizeof(Mat) / sizeof(Mat[0]); i++){
-        printf("Value i = %d , %f\n", i, Mat[i]);
-    }   
+//    for(int i = 0; i < sizeof(Mat) / sizeof(Mat[0]); i++){
+//        printf("Value i = %d , %f\n", i, Mat[i]);
+//    }   
 
 
     double* newCube = malloc(sizeof(double) * sflake->voxCubeLen);
@@ -358,16 +358,10 @@ void displayExtreme(snowflake* s){
 }
 
 
-void printLocal(snowflake* s, char* file){
+void printLocal(snowflake* s, int fd){
 
 
 //    printf("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
-
-    int fd;
-    if((fd = open(file, O_WRONLY | O_CREAT |O_APPEND, S_IRUSR|S_IWUSR|S_IWGRP|S_IWOTH|S_IROTH)) ==-1){
-        perror("Open Fail");
-        exit(EXIT_FAILURE);
-    }
 
 //    printf("fd inside printLocal: %d\n", fd);
 
@@ -378,7 +372,6 @@ void printLocal(snowflake* s, char* file){
         write_file3D(fd, s->neighborCollisions[i], size);
     }
 
-    close(fd);
 }
 
 
@@ -394,7 +387,7 @@ void write_file3D(int fd,  snowflake* s, int lsize ){
     int y = lsize;
     int z = lsize;
 
-    printf("Origins: %f, %f, %f\n", s->originX, s->originY, s->originZ );
+//    printf("Origins: %f, %f, %f\n", s->originX, s->originY, s->originZ );
 
 
     for(int i = 0; i < z; i++){

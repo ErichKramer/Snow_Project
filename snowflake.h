@@ -54,7 +54,7 @@ void scale(snowflake*, double, double ,double);
 
 /*  Logging functions(depend on snowflake)   */
 void displayExtreme(snowflake*);
-void printLocal(snowflake*, char*);
+void printLocal(snowflake*, int);
 void write_file3D(int, snowflake*, int);
 void write_file2D(int, double*, int);
 

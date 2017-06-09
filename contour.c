@@ -99,7 +99,7 @@ int contour3D(double *src, double *dest, int x, int y, int z){
         for(int i = -1; i < 2; i++){
             for(int j = -1; j < 2; j++){
 
-                tmp = contour2D(src, dest, x+j, y+i, z+k);
+                tmp = contour3D(src, dest, x+j, y+i, z+k);
                 //if not active or out of bounds and ...
                 if( tmp != -1 && tmp < min){
                     min = tmp;
