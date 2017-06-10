@@ -37,9 +37,10 @@ snowflake* initSnowflake(int, int, int, int);
 void setOrigin(snowflake*, double, double, double);
 void setEllipses(snowflake*, int, int, int);
 void combineGeom(snowflake*, snowflake*);
-int boxCollide(snowflake*, snowflake*);
+int  boxCollide(snowflake*, snowflake*);
 void import2DArr(snowflake*, double*, int);
 void updateMaxMin(snowflake*);
+
 
 /*  Snowflake Translations  */
 void rotate(snowflake*, double, double, double, double);

@@ -96,16 +96,18 @@ void combineGeom(snowflake* a, snowflake* b){
     int vecDiff = xDiff + yDiff*size + zDiff*size*size;
     int currLoc=0;
 
-    
+    int counter = 0;
     for(int i = 0; i < sizeCube; i++){
         if(vecDiff+i > 0 && vecDiff+i < sizeCube){
 
             if(b->voxelSpace[i]==-1){
                 a->voxelSpace[i+vecDiff] = -1;
+                counter++;
             }
             //if b has -1 it was already written to a and this is redundant
             if(a->voxelSpace[i+vecDiff] == -1){
                 b->voxelSpace[i] = a->voxelSpace[i+vecDiff];
+                counter++;
             }
             
         }
@@ -114,7 +116,6 @@ void combineGeom(snowflake* a, snowflake* b){
 
 
     /* WRITE REMOVED GEOMETRIES*/
-    
     for(int z = 0; z<size; z++){
         for(int y = 0; y<size; y++){
             for(int x = 0; x<size; x++){
@@ -125,7 +126,6 @@ void combineGeom(snowflake* a, snowflake* b){
                             || (a->voxelSpace[currLoc+vecDiff] == -1 && b->voxelSpace[currLoc] == 1)){
                         a->voxelSpace[currLoc+vecDiff] = -1;
                         b->voxelSpace[currLoc] = -1;
-
                         sprintf(bPoint, "%f\t%f\t%f\t0\t0\t0\t0\t0\t0\t0\t0\n",
                                 (float)x/10, (float)y/10, (float)z/10 );
 
@@ -138,6 +138,7 @@ void combineGeom(snowflake* a, snowflake* b){
             }
         }
     }
+    printf("Removed %d \n", counter);
 }
 
 
@@ -173,7 +174,7 @@ void import2DArr(snowflake* s, double* arr, int size ){
     s->voxelSpace = malloc(sizeof(double) * s->voxCubeLen);
     int z=0;
     int idx;
-    int cubeSize = size*size; //prevent excessive mul, used for z
+    int squareSize = size*size; //prevent excessive mul, used for z
     int centerPlane = size/2;//center plane of sflake
 
     for( int i = 0; i < size; i++){
@@ -183,11 +184,11 @@ void import2DArr(snowflake* s, double* arr, int size ){
 
             if(z = arr[j+ i*size] ){
                 for(int n = 0; n < z-1; n++){
-                    s->voxelSpace[j + i*size + (centerPlane +(int)n/2)*cubeSize ]=-1;
-                    s->voxelSpace[j + i*size + (centerPlane - (int)n/2)*cubeSize ]=-1;
+                    s->voxelSpace[j + i*size + (centerPlane +(int)n/2)*squareSize ]=-1;
+                    s->voxelSpace[j + i*size + (centerPlane - (int)n/2)*squareSize ]=-1;
                 }
-                s->voxelSpace[j + i*size + (centerPlane +z/2)*cubeSize ]=1;
-                s->voxelSpace[j + i*size + (centerPlane -z/2)*cubeSize ]=1;
+                s->voxelSpace[j + i*size + (centerPlane +z/2)*squareSize ]=1;
+                s->voxelSpace[j + i*size + (centerPlane -z/2)*squareSize ]=1;
 
                 if( i < s->xMin) s->xMin = i;
                 if( i > s->xMax) s->xMax = i;
@@ -215,30 +216,37 @@ void updateMaxMin(snowflake* s){
     assert(s->voxelSpace != NULL);
     int x,y,z;
     
-    int yMax, xMax, zMax = 0;
-    for( z = 0; z  < s->voxCubeLen; z++){
-        for( y = 0; y < s->voxCubeLen; y++){
-            for(x = 0; x < s->voxCubeLen; x++){
+    int yMax, xMax, zMax, xMin, yMin, zMin = 0;
+    for( z = 0; z  < size; z++){
+        for( y = 0; y < size; y++){
+            for(x = 0; x < size; x++){
                 if(s->voxelSpace[z*size*size + y*size + x]){
                     if(x > xMax){
                         xMax = x;
                     }
+                    if(x < xMin){
+                        xMin = x;
+                    }
                     if(y > yMax){
                         yMax = y;
+                    }
+                    if(y < yMin){
+                        yMin = y;
                     }
                     if(z > zMax){
                         zMax = z;
                     }
+                    if( z < zMin){
+                        zMin = z;
+                    }//make this less bad at some point
 
                 }
             }
         }
-
-
     }
-    //for each plane scan for a valid z value, stop if found
-        
-//flip a bool when going from hit to not hit
+    s->xMax = xMax; s->xMin = xMin;   
+    s->yMax = yMax; s->yMin = yMin;
+    s->zMax = zMax; s->zMin = zMin;
 }
 
 /*************************************************
@@ -293,7 +301,6 @@ void rotate(snowflake* sflake, double angle, double rX, double rY, double rZ){
             for(int i = -size/2; i<size/2; i++){
 
 
-               // printf("X: %d Y: %d Z: %d\n", i, j, k);
                // printf("Size3 = %d, current = %d\n", size*size*size,
                //         i + j*size + k*sizeSqr + offset);
 
@@ -313,10 +320,12 @@ void rotate(snowflake* sflake, double angle, double rX, double rY, double rZ){
             }
         }
     }
+//    printf("before free\n");
 
     free(sflake->voxelSpace);
     sflake->voxelSpace = newCube;
 
+    updateMaxMin(sflake);
 }
    
 
@@ -361,15 +370,12 @@ void displayExtreme(snowflake* s){
 void printLocal(snowflake* s, int fd){
 
 
-//    printf("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
-
-//    printf("fd inside printLocal: %d\n", fd);
 
     int i;
     write_file3D(fd, s, size);//this is breaking
 
     for( i = 0; i < s->neighSize; i++){
-        write_file3D(fd, s->neighborCollisions[i], size);
+    //    write_file3D(fd, s->neighborCollisions[i], size);
     }
 
 }
