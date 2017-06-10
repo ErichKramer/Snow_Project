@@ -51,7 +51,8 @@ int getPointArr(point** pS, char* file){
     
 
     while(fgets(buffer, 256, (FILE*)fp)){  
- 
+
+        printf("idx is %d", idx); 
         pS[idx] = malloc(sizeof(point));
 
         char* token = strtok(buffer, delimit);
