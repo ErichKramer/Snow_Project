@@ -32,7 +32,7 @@ void trimHeader(FILE* fp){
 //Construct an array of point structs of all the described
 //in the point cloud file
 
-int getPointArr(point** pS, char* file){
+int getPointArr(point*** parentS, char* file){
     
 
 /*current simulation has 61814 points.                              
@@ -40,6 +40,10 @@ int getPointArr(point** pS, char* file){
 * Instead use a script to determine wc and pass as a param          
 * (requires implementation of accepting that param)                 
 */
+    point** pS = *parentS;
+    int max = 512;
+    pS = malloc(sizeof(point*) * max);
+
     FILE* fp = fopen(file, "r");
     int idx = 0;
     const char delimit[2] = "\t";
@@ -51,8 +55,17 @@ int getPointArr(point** pS, char* file){
     
 
     while(fgets(buffer, 256, (FILE*)fp)){  
+        if(idx >= max){
+            max *=2;
+            point** tmp = malloc(sizeof(point*) *max);
+            for(int i = 0; i < idx; i++){
+                tmp[i] = pS[i];
+            }
+            free(pS);
+            pS = tmp;
+            printf("%d \n", max);
+        }
 
-        printf("idx is %d", idx); 
         pS[idx] = malloc(sizeof(point));
 
         char* token = strtok(buffer, delimit);
@@ -69,8 +82,26 @@ int getPointArr(point** pS, char* file){
         pS[idx]->mass= atof(strtok(NULL, delimit)) ;
         idx++;
     }
+    *parentS = pS;
     return idx;
 }
+
+
+
+int *randomRotArr(int count){
+
+    int* tmp = malloc(sizeof(int*));
+    tmp = malloc(sizeof(int) * count*4);
+
+    for(int i = 0; i< count*4;){
+        tmp[i++] = rand()%180;
+        tmp[i++] = rand()%10;
+        tmp[i++] = rand()%10;
+        tmp[i++] = rand()%10;
+    }
+    return tmp;
+
+} 
 
 
 int main(){
@@ -79,35 +110,31 @@ int main(){
     snowflake* a = initSnowflake(0, 0, 0, -1);
     srand(time(NULL));
 
-
-    int fd;
-    if((fd = open("zeroFileSoup.txt", O_WRONLY | O_CREAT |O_APPEND, S_IRUSR|S_IWUSR|S_IWGRP|S_IWOTH|S_IROTH)) ==-1){
-        perror("Open Fail");
-        exit(EXIT_FAILURE);
-    }
-
-
-
     double* tmp = gen_crystal(0);
     double* tmpContour = malloc(sizeof(double) * size*size);
     contour2D(tmp, tmpContour, size/2, size/2);
     import2DArr(a, tmpContour, size);
-    
+ 
+    int fd;
+    if((fd = open("zeroFileSoup.txt", O_WRONLY | O_CREAT |O_TRUNC, S_IRUSR|S_IWUSR|S_IWGRP|S_IWOTH|S_IROTH)) ==-1){
+        perror("Open Fail");
+        exit(EXIT_FAILURE);
+    }
+
    
-
-    const char delimit[2] = "\t";
-    char buffer[256];
-    double x,y,z;
-
 
     //how much to spread snowflakes for good looking bank
 
 
-    int pointCount = 65536;
     point** pointSoup;//array of pointers to structs
-    pointSoup = malloc(sizeof(point*) * pointCount);
-    int cnt = getPointArr(pointSoup, "out.0.txt");
+
+    int cnt = getPointArr(&pointSoup, "out.0.txt");
+    
     printf("Finished reading file\n");
+
+    int rSize = 25;
+    int* rotArr = randomRotArr(rSize); 
+    int rIdx = 0;
 
     for(int i = 0; i < cnt; i++){
         free(a->voxelSpace);
@@ -115,15 +142,11 @@ int main(){
         if(i%50 == 0){
             printf("Now at idx:%d/%d \n", i, cnt);
         }
+        rIdx = (rand()%rSize) *4;
         setOrigin(a, pointSoup[i]->x, pointSoup[i]->y, pointSoup[i]->z);
-        //rotate(a, rand()%180, rand()%10, rand()%10, rand()%10 );
+        rotate(a, rotArr[rIdx], rotArr[rIdx+1], rotArr[rIdx+2], rotArr[rIdx+3] );
         printLocal(a, fd);
     }
-
-
-
-    
-
     free(tmp);
     free(tmpContour);
 }
