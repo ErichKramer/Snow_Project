@@ -1,16 +1,14 @@
 #ifndef SNOWFLAKE_H
 #define SNOWFLAKE_H
 
-#include "vertex.h"
-
 extern int size;
 
 typedef struct snowflake snowflake;
 struct snowflake{
     int idx;
 
-    vertex** vertexSoup; //3d array of voxels describing shell
-    int vertCount;     //dimensions of voxelSpace x*y*z
+    double* voxelSpace; //3d array of voxels describing shell
+    int voxCubeLen;     //dimensions of voxelSpace x*y*z
 
     double originX, originY, originZ;
 
