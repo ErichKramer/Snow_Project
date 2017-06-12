@@ -15,12 +15,14 @@ struct snowflake{
     double originX, originY, originZ;
 
     //integers to bound the extremes, used to calc eclippse
-    float xMax, yMax, zMax;//qed
-    float xMin, yMin, zMin;
+    double xMax, yMax, zMax;//qed
+    double xMin, yMin, zMin;
 
-    //variables for ellipsoid description
+    //variables for ellipsoid description??? deprecated
     //x^2/a^2 + y^2/b^2 + z^2/c^2 = 1
-    float eX, eY, eZ;
+    //double eX, eY, eZ;
+
+    double sX, sY, sZ;
 
     //ellipsoid coefficents = 1 / {[(Max - Min)/2]^2} 
 
@@ -37,20 +39,25 @@ snowflake* initSnowflake(int, int, int, int);
 void setOrigin(snowflake*, double, double, double);
 void setEllipses(snowflake*, int, int, int);
 void combineGeom(snowflake*, snowflake*);
-int boxCollide(snowflake*, snowflake*);
+int  boxCollide(snowflake*, snowflake*);
 void import2DArr(snowflake*, double*, int);
 void updateMaxMin(snowflake*);
 
-/*Transformations*/
-void scale(snowflake*, double);
+
+/*  Snowflake Translations  */
 void rotate(snowflake*, double, double, double, double);
 void translate(snowflake*, double, double, double);
+void scale(snowflake*, double, double ,double);
 
 
+/*rotate:       angle, x, y, z
+ *translate:    x...
+ *scale:        x...
+ * */
 
 /*  Logging functions(depend on snowflake)   */
 void displayExtreme(snowflake*);
-void printLocal(snowflake*, char*);
+void printLocal(snowflake*, int);
 void write_file3D(int, snowflake*, int);
 
 /* Extraneous Logging*/

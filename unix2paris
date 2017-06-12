@@ -1,0 +1,10 @@
+#!/bin/bash
+foo=${1%.*}
+foo="$foo.paris.txt"
+
+awk -F "\t" '{print $1" " $2" " $3}' $1 > $foo
+unix2dos $foo
+
+
+
+

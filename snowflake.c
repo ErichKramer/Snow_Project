@@ -1,4 +1,3 @@
-//Snowflake.h (change to header)
 #ifndef SNOWFLAKE_C
 #define SNOWFLAKE_C
 
@@ -12,10 +11,9 @@
 #include <fcntl.h>
 #include <unistd.h>
 
-
 #include "contour.h"
 #include "crystal_phase.h"
-#include "vertex.h"
+
 
 extern int size;
 
@@ -28,11 +26,11 @@ snowflake* initSnowflake(int x, int y, int z, int idx){
     s->originX = x;
     s->originY = y;
     s->originZ = z;
-    s->idx = idx;//self representation 
+    s->idx = idx;
 
-    s->vertCount = 0;
+    s->voxCubeLen = 0;
     s->neighSize = 0;
-    s->vertexSoup = NULL;   
+    s->voxelSpace = NULL;   
     s->neighborCollisions = malloc(sizeof(void*)* 32);
 
     s->xMax = 0;
@@ -41,10 +39,12 @@ snowflake* initSnowflake(int x, int y, int z, int idx){
     s->xMin = size;
     s->yMin = size;
     s->zMin = size;
-
+    s->sX = s->sY = s->sZ = 10;
 
 }
 
+
+/*SNOWFLAKE OPERATIONS*/
 
 
 void setOrigin(snowflake* s, double x, double y, double z){
@@ -53,6 +53,9 @@ void setOrigin(snowflake* s, double x, double y, double z){
     s->originZ = z;
 }
 
+
+
+/* DEPRECATED CURRENTLY. SEE COLLIDE FUNCTION
 //set the bounds
 void setEllipses(snowflake* s, int x, int y, int z){
 
@@ -67,14 +70,13 @@ void setEllipses(snowflake* s, int x, int y, int z){
     s->zMin = s->originZ - z;
     s->zMax = s->originZ + z;
 }
+*/
 
-
-
-/*Requires Re-write for new geometry representation*/
 void combineGeom(snowflake* a, snowflake* b){
 
-    int sizeCube    = size*size*size;
+    assert(a->voxCubeLen == b->voxCubeLen);
 
+    int sizeCube    = a->voxCubeLen;
     //9 times for a 3x3x3 cube
 
     int xDiff = b->originX - a->originX;
@@ -82,9 +84,61 @@ void combineGeom(snowflake* a, snowflake* b){
     int zDiff = b->originZ - a->originZ;
     
     int vecDiff = xDiff + yDiff*size + zDiff*size*size;
+    int currLoc=0;
 
-    a->neighborCollisions[a->neighSize++] = b;
-    b->neighborCollisions[b->neighSize++] = a;
+    int counter = 0;
+    for(int i = 0; i < sizeCube; i++){
+        if(vecDiff+i > 0 && vecDiff+i < sizeCube){
+
+            if(b->voxelSpace[i]==-1){
+                a->voxelSpace[i+vecDiff] = -1;
+                counter++;
+            }
+            //if b has -1 it was already written to a and this is redundant
+            if(a->voxelSpace[i+vecDiff] == -1){
+                b->voxelSpace[i] = a->voxelSpace[i+vecDiff];
+                counter++;
+            }
+        }
+    }
+    
+
+/*
+    int fd;
+    if ((fd = open("removed.txt", O_WRONLY | O_CREAT |O_TRUNC, S_IRUSR|S_IWUSR|S_IWGRP|S_IWOTH|S_IROTH)) ==-1){
+        perror("Open fail");
+        exit(EXIT_FAILURE);
+    }
+    char buffer[100];
+    char* bPoint = buffer;
+
+
+ 
+    // WRITE REMOVED GEOMETRIES/
+    for(int z = 0; z<size; z++){
+        for(int y = 0; y<size; y++){
+            for(int x = 0; x<size; x++){
+                //this finds the correct number of conflictes to match above
+                currLoc = x + y*size + z*size*size;
+                if(vecDiff+currLoc > 0 && vecDiff+currLoc < sizeCube){                   
+                    if((b->voxelSpace[currLoc] == -1 && a->voxelSpace[currLoc+vecDiff] == 1)
+                            || (a->voxelSpace[currLoc+vecDiff] == -1 && b->voxelSpace[currLoc] == 1)){
+                        a->voxelSpace[currLoc+vecDiff] = -1;
+                        b->voxelSpace[currLoc] = -1;
+                        sprintf(bPoint, "%f\t%f\t%f\t0\t0\t0\t0\t0\t0\t0\t0\n",
+                                (float)x/10, (float)y/10, (float)z/10 );
+
+                        if(write(fd, bPoint, sizeof(char) * strlen(bPoint)) ==-1){
+                            perror("Write to file: ");
+                            exit(EXIT_FAILURE);
+                        }
+                    }
+                }   
+            }
+        }
+    }
+    printf("Removed %d \n", counter);
+*/
 }
 
 
@@ -95,12 +149,17 @@ int boxCollide(snowflake* a, snowflake* b){
         if((a->yMax- b->yMin)*(a->yMin - b->yMax) < 0 ){
             if( (a->zMax- b->zMin)*(a->zMin - b->zMax) < 0 ){
                 combineGeom(a, b);
+             
+                a->neighborCollisions[a->neighSize++] = b;
+                b->neighborCollisions[b->neighSize++] = a;
+
                 return 1;
             }
         }
     }
     return 0;
 
+    //include methods for 
 }
 
 
@@ -109,23 +168,27 @@ int boxCollide(snowflake* a, snowflake* b){
 
 //construct voxel shell from x,y cooords
 void import2DArr(snowflake* s, double* arr, int size ){
-    
-//double* arr should not have any -1 values
 
-    //max of 2 at each x,y point
-    s->vertexSoup = malloc(sizeof(vertex*) * 2*size*size);
+
+    s->voxCubeLen = size*size*size;
+    s->voxelSpace = malloc(sizeof(double) * s->voxCubeLen);
     int z=0;
-    int count = 0;
+    int idx;
+    int squareSize = size*size; //prevent excessive mul, used for z
+    int centerPlane = size/2;//center plane of sflake
 
     for( int i = 0; i < size; i++){
+
+        //formula for z value
         for(int j = 0; j < size; j++){
 
-            if(z = arr[j+ i*size] ){//there is a point in the contour bit
-            
-                //subtract size/2.0 to shift all values so that they range from [-size/2, size/2]
-                //rather than [0, size] 
-                s->vertexSoup[count++] = loadVal( j-size/2.0, i-size/2.0, z);
-                s->vertexSoup[count++] = loadVal( j-size/2.0, i-size/2.0,-z);
+            if(z = arr[j+ i*size] ){
+                for(int n = 0; n < z-1; n++){
+                    s->voxelSpace[j + i*size + (centerPlane +(int)n/2)*squareSize ]=-1;
+                    s->voxelSpace[j + i*size + (centerPlane - (int)n/2)*squareSize ]=-1;
+                }
+                s->voxelSpace[j + i*size + (centerPlane +z/2)*squareSize ]=1;
+                s->voxelSpace[j + i*size + (centerPlane -z/2)*squareSize ]=1;
 
                 if( i < s->xMin) s->xMin = i;
                 if( i > s->xMax) s->xMax = i;
@@ -147,58 +210,73 @@ void import2DArr(snowflake* s, double* arr, int size ){
     s->yMax += s->originY;
     s->zMax += s->originZ;
     
-    s->vertCount = count;
 }
 
-
-
 void updateMaxMin(snowflake* s){
-    assert(s->vertexSoup != NULL);
+    assert(s->voxelSpace != NULL);
+    int x,y,z;
+    
+    int yMax, xMax, zMax, xMin, yMin, zMin = 0;
+    for( z = 0; z  < size; z++){
+        for( y = 0; y < size; y++){
+            for(x = 0; x < size; x++){
+                if(s->voxelSpace[z*size*size + y*size + x]){
+                    if(x > xMax){
+                        xMax = x;
+                    }
+                    if(x < xMin){
+                        xMin = x;
+                    }
+                    if(y > yMax){
+                        yMax = y;
+                    }
+                    if(y < yMin){
+                        yMin = y;
+                    }
+                    if(z > zMax){
+                        zMax = z;
+                    }
+                    if( z < zMin){
+                        zMin = z;
+                    }//make this less bad at some point
 
-
-
-//this needs to be updated
+                }
+            }
+        }
+    }
+    s->xMax = xMax; s->xMin = xMin;   
+    s->yMax = yMax; s->yMin = yMin;
+    s->zMax = zMax; s->zMin = zMin;
 }
 
 /*************************************************
  *
- *TRANSFORM MATRIX FUNCTIONS
+ *Snowflake Translation operations
  *
  ************************************************/
-
-
-void scale(snowflake* s, double scl){
-    vertex** v = s->vertexSoup;
-
-    for(int i = 0; i < s->vertCount; i++){
-        scaleV(v[i], scl);
-    }
-    return;
-}
-
-
-
-//rotate the vertex around the center of the obj. using magic
-//
 void rotate(snowflake* sflake, double angle, double rX, double rY, double rZ){
-    vertex** v = sflake->vertexSoup;
-
-    vertex* rot = loadVal(rX, rY, rZ);   
-    normalize(rot);//vertex operation from vertex.h, it's vectors all the way down
-
-//atoi for floats    printf("rX %f rY %f rZ %f \n", rX, rY, rZ);
+    double* voxSpace = sflake->voxelSpace;
 
 
-    rX = rot->x;
-    rY = rot->y;
-    rZ = rot->z;
-//    printf("rotX = %f, rotY %f, rotZ %f\n",rot->x ,rot->y ,rot->z );
+//    printf("Before normaling: rX %f, rY %f, rZ %f\n", rX, rY, rZ);
 
-    double xTmp,yTmp,zTmp = 0; // temp values for conservation of values
+    double magnitude = 0.;
+
+    magnitude = sqrt(rX * rX + rY * rY + rZ * rZ);
+    rX /= magnitude;
+    rY /= magnitude;
+    rZ /= magnitude;
+   
+//    printf("After Normasl: rX %f, rY %f, rZ %f, mag %f\n", rX, rY, rZ, magnitude);
+    
+
+    //double xTmp,yTmp,zTmp = 0; // temp values for conservation of values
     angle = angle * M_PI/180;
     double s = sin(angle);
     double c = cos(angle);
     double t = 1-c;
+
+//    printf("sin %f,cos  %f,tan %f\n", s, c, t);
 
     double Mat[] = {
         rX*rX*t + c, rY*rX*t + rZ*s, rZ*rX*t - rY*s, 0,
@@ -206,34 +284,68 @@ void rotate(snowflake* sflake, double angle, double rX, double rY, double rZ){
         rX*rZ*t + rY*s, rY*rZ*t - rX*s, rZ*rZ*t + c, 0,
         0           , 0             , 0             ,1
     };
+//    for(int i = 0; i < sizeof(Mat) / sizeof(Mat[0]); i++){
+//        printf("Value i = %d , %f\n", i, Mat[i]);
+//    }   
+
+
+    double* newCube = malloc(sizeof(double) * sflake->voxCubeLen);
+    int xTmp, yTmp, zTmp;
+
+    int sizeSqr = size*size;//prevent extraneous mul
+
+    int offset = size*size*size /2 + size*size/2 + size/2;
+
+    for(int k = -size/2; k<size/2; k++){
+        for(int j = -size/2; j<size/2; j++){
+            for(int i = -size/2; i<size/2; i++){
+
+
+               // printf("Size3 = %d, current = %d\n", size*size*size,
+               //         i + j*size + k*sizeSqr + offset);
+
+                if(voxSpace[i + j*size + k*sizeSqr + offset]){
+                    //cast to int and add .5 to round up or down 
+                    xTmp = (int)(i*Mat[0] + j*Mat[1] + k*Mat[2] + .5);
+                    yTmp = (int)(i*Mat[4] + j*Mat[5] + k*Mat[6] + .5);
+                    zTmp = (int)(i*Mat[8] + j*Mat[9] + k*Mat[10]+ .5);
+                    
+//                    printf("New vals: %d, %d, %d\n", xTmp, yTmp, zTmp);
+                    
+     
+                    newCube[xTmp + yTmp*size + zTmp*sizeSqr + offset] = 
+                        voxSpace[i + j*size + k*sizeSqr + offset];
     
-
-    for(int i = 0; i < sflake->vertCount; i++){
-        xTmp = v[i]->x;
-        yTmp = v[i]->y;
-        zTmp = v[i]->z;
-
-        v[i]->x = xTmp*Mat[0] + yTmp*Mat[1] + zTmp*Mat[2];
-        v[i]->y = xTmp*Mat[4] + yTmp*Mat[5] + zTmp*Mat[6];
-        v[i]->z = xTmp*Mat[8] + yTmp*Mat[9] + zTmp*Mat[10];
-
+                }
+            }
+        }
     }
-    return;
+//    printf("before free\n");
+
+    free(sflake->voxelSpace);
+    sflake->voxelSpace = newCube;
+
+    updateMaxMin(sflake);
+}
+   
+
+void scale(snowflake* s, double sX, double sY, double sZ){
+
+    if(sX)
+        s->sX *= sX;
+    if(sY)
+        s->sY *= sY;
+    if(sZ)
+        s->sZ *= sZ;
+
+}
+
+void translate(snowflake* s, double tX, double tY, double tZ){
+    s->originX +=tX; s->originY += tY; s->originZ += tZ;
 }
 
 
 
-
-
-void translate(snowflake* s, double x, double y, double z){
-    vertex** v = s->vertexSoup;
-
-    for(int i = 0; i < s->vertCount; i++){
-        transV(v[i], x, y, z);
-    }
-
-    return; //should this be just changing the origin?
-}
 
 
 
@@ -255,59 +367,58 @@ void displayExtreme(snowflake* s){
 }
 
 
-void printLocal(snowflake* s, char* file){
+void printLocal(snowflake* s, int fd){
 
-    int fd;
-    if((fd = open(file, O_WRONLY | O_CREAT |O_APPEND, S_IRUSR|S_IWUSR|S_IWGRP|S_IWOTH|S_IROTH)) ==-1){
-        perror("Open Fail");
-        exit(EXIT_FAILURE);
-    }
+
 
     int i;
-    write_file3D(fd, s, size);
+    write_file3D(fd, s, size);//this is breaking
 
     for( i = 0; i < s->neighSize; i++){
-        write_file3D(fd, s->neighborCollisions[i], size);
+    //    write_file3D(fd, s->neighborCollisions[i], size);
     }
 
-    close(fd);
 }
 
 
 //write from a 3 space array into 3 space coordinates
 void write_file3D(int fd,  snowflake* s, int lsize ){
 
-    //this needs to be updated
-    
-//ToDo: divide by w?
-
-    vertex** verts = s->vertexSoup;
+    double* geom = s->voxelSpace;
 
     char buffer[100];
     char* bPoint = buffer;
 
+    int x = lsize;
+    int y = lsize;
+    int z = lsize;
 
-    printf("Origins: %f, %f, %f\n", s->originX, s->originY, s->originZ );
+//    printf("Origins: %f, %f, %f\n", s->originX, s->originY, s->originZ );
 
-    int div = 500;
 
-    for(int i = 0; i < s->vertCount; i++){
-        sprintf(bPoint, "%f\t%f\t%f\t0\t0\t0\t0\t0\t0\t0\t0\n",
-            (verts[i]->x+s->originX)/div, (verts[i]->y + s->originY)/div,
-            (verts[i]->z + s->originZ)/div);
+    for(int i = 0; i < z; i++){
+        for( int j = 0; j< y; j++){
+            for( int k = 0; k < x; k++){
 
-        if(write(fd, bPoint, sizeof(char) * strlen(bPoint)) ==-1){
-            perror("Write to file: ");
-            exit(EXIT_FAILURE);
+                if( geom[lsize*lsize*i + lsize*j + k] == 1){
+                    sprintf(bPoint, "%f\t%f\t%f\t0\t0\t0\t0\t0\t0\t0\t0\n",
+                            ((float)k + s->originX)/s->sX, ((float)j + s->originY)/s->sY,
+                            ((float)i + s->originZ)/s->sZ  );
+
+                    if(write(fd, bPoint, sizeof(char) * strlen(bPoint)) ==-1){
+                        perror("Write to file: ");
+                        exit(EXIT_FAILURE);
+                    }
+
+                }
+            }
         }
-
     }
-
 }
 
 
 void write_file2D(int fd, double* geom, int lsize){
-//this needs to be updated
+
     char buffer[100];
     char* bPoint = buffer;
 
@@ -317,23 +428,26 @@ void write_file2D(int fd, double* geom, int lsize){
             if(geom[x + y*lsize]){
 
                 sprintf(bPoint, "%f\t%f\t%f\t0\t0\t0\t0\t0\t0\t0\t0\n",
-                    (float)x/10, (float)y/10, geom[x + y*lsize]);
+                            (float)x/10, (float)y/10, geom[x + y*lsize]);
 
-                if(write(fd, bPoint, sizeof(char) * strlen(bPoint)) ==-1){
-                    perror("Write to file: ");
-                    exit(EXIT_FAILURE);
-                }
+                    if(write(fd, bPoint, sizeof(char) * strlen(bPoint)) ==-1){
+                        perror("Write to file: ");
+                        exit(EXIT_FAILURE);
+                    }
 
                 sprintf(bPoint, "%f\t%f\t%f\t0\t0\t0\t0\t0\t0\t0\t0\n",
-                    (float)x/10, (float)y/10, -geom[x + y*lsize]);
+                            (float)x/10, (float)y/10, -geom[x + y*lsize]);
 
-                if(write(fd, bPoint, sizeof(char) * strlen(bPoint)) ==-1){
-                    perror("Write to file: ");
-                    exit(EXIT_FAILURE);
-                }
+                    if(write(fd, bPoint, sizeof(char) * strlen(bPoint)) ==-1){
+                        perror("Write to file: ");
+                        exit(EXIT_FAILURE);
+                    }
             }
+
         }
+
     }
+
 }
 
 
