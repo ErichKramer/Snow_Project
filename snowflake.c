@@ -76,17 +76,7 @@ void combineGeom(snowflake* a, snowflake* b){
 
     assert(a->voxCubeLen == b->voxCubeLen);
 
-    int fd;
-    if ((fd = open("removed.txt", O_WRONLY | O_CREAT |O_TRUNC, S_IRUSR|S_IWUSR|S_IWGRP|S_IWOTH|S_IROTH)) ==-1){
-        perror("Open fail");
-        exit(EXIT_FAILURE);
-    }
-    char buffer[100];
-    char* bPoint = buffer;
-
-    
     int sizeCube    = a->voxCubeLen;
-
     //9 times for a 3x3x3 cube
 
     int xDiff = b->originX - a->originX;
@@ -109,13 +99,22 @@ void combineGeom(snowflake* a, snowflake* b){
                 b->voxelSpace[i] = a->voxelSpace[i+vecDiff];
                 counter++;
             }
-            
         }
     }
     
 
+/*
+    int fd;
+    if ((fd = open("removed.txt", O_WRONLY | O_CREAT |O_TRUNC, S_IRUSR|S_IWUSR|S_IWGRP|S_IWOTH|S_IROTH)) ==-1){
+        perror("Open fail");
+        exit(EXIT_FAILURE);
+    }
+    char buffer[100];
+    char* bPoint = buffer;
 
-    /* WRITE REMOVED GEOMETRIES*/
+
+ 
+    // WRITE REMOVED GEOMETRIES/
     for(int z = 0; z<size; z++){
         for(int y = 0; y<size; y++){
             for(int x = 0; x<size; x++){
@@ -139,6 +138,7 @@ void combineGeom(snowflake* a, snowflake* b){
         }
     }
     printf("Removed %d \n", counter);
+*/
 }
 
 

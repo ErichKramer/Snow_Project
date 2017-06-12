@@ -3,7 +3,6 @@ default: collide
 collide: crystal_phase.c sflake.c contour.c snowflake.c input.c
 	gcc sflake.c contour.c crystal_phase.c snowflake.c input.c -lm -o collide -std=gnu99
 
-
 crystal-plot: crystal_phase.c plot.py 
 	mkdir -p GIFs
 	mkdir -p PNGs
